@@ -1,0 +1,102 @@
+#make AA transition figure
+#Just NS
+source("Rscripts/baseRscript.R")
+
+computeColInds <- function(wtnt){
+        colsToRet <- wtnt
+        colsToRet[wtnt == "a"] <- 1
+        colsToRet[wtnt == "t"] <- 2
+        colsToRet[wtnt == "c"] <- 3
+        colsToRet[wtnt == "g"] <- 4
+        return(as.numeric(colsToRet))
+}
+
+
+#Read the overview files as a list
+HCVFiles_overview<-list.files("Overview_output/",pattern="-overview.csv")
+
+Overview_summary<-list()
+for (i in 1:length(HCVFiles_overview)){ 
+        overviews<-read.csv(paste0("Overview_output/",HCVFiles_overview[i]),stringsAsFactors=FALSE)
+        overviews<-overviews[,-1]
+        Overview_summary[[i]]<-overviews
+        names(Overview_summary)[i]<-substr(paste(HCVFiles_overview[i]),start=1,stop=7)
+}
+
+
+######################
+#create a figure
+
+for (h in 1:length(HCVFiles)){ 
+        id<-substr(paste(HCVFiles_overview[h]),start=1,stop=7)
+        print(id)
+        hcvdat<-Overview_summary[[h]]
+
+        NS <- hcvdat[hcvdat$Type == "nonsyn",]
+        stotab <- table(NS$WTAA, NS$MUTAA)
+        allComps <- matrix(data = NA, nrow = sum(stotab > 0), ncol = 2) #Get a list of all AA substitutions in the dataset
+        
+        for(i in 1:nrow(stotab)){
+                for(j in 1:ncol(stotab)){
+                        if(stotab[i,j] != 0){ allComps[min(which(is.na(allComps[,1]))), ] <- c(rownames(stotab)[i], colnames(stotab)[j] ) }
+                }
+        }
+
+        opac = 50
+        pchs <- c(16, 17)
+        ylimval <- -4
+       
+        pdf(paste0("Output/AAchanges/AAchangesNS_.pdf",id,".pdf"), height = 5, width = 9)
+        par(mar = c(5, 4, 1, 5))
+        
+        plot(0, type = "n", xlim = c(1, nrow(allComps)), ylim = c(ylimval, 0), axes = FALSE, ylab = "Estimated Selection Coefficient (cost)", xlab = "Mutation")
+        axis(side = 2, at = seq(0,ylimval, by=-1), labels = expression(10^0, 10^-1, 10^-2, 10^-3, 10^-4), las = 2)
+        #mtext(side = 2, at = atvals, text = rep(toMod, 4), line = 1, las = 2)
+        
+        labsize <- .9
+        linepos=4.4
+        yesnoswitch=1
+        for(i in unique(allComps[,1])){
+                rangevals <- range(which(allComps[,1] == i))
+                #    if (yesnoswitch==1){polygon(mean(rangevals), -linepos-.1, mean(rangevals), -linepos+.1, col="pink", xpd=NA,lwd=15)}
+                segments(rangevals[1] - .25, -linepos, rangevals[2] + .25, -linepos, col="black", xpd=NA)
+                if (yesnoswitch==1) {  polygon(c(rangevals[1] - .25,rangevals[2] + .25,rangevals[2] + .25,rangevals[1] - .25),
+                                               c(-linepos-.01,-linepos-.01,-linepos-.2,-linepos-.2),col="lightpink",border=0,xpd=NA)
+                        abline(v=rangevals[1:2],  col = "pink", lty=1, lwd=14.2)}
+                #if (i =="W")polygon(c(rangevals[1] - .5,rangevals[2] + .5,rangevals[2] + .5,rangevals[1] - .5),
+                #                    c(-linepos-.01,-linepos-.01,-linepos-.2,-linepos-.2),col="lightpink",border=0,xpd=NA)
+                if (yesnoswitch==1)  mtext(paste(i), 1, line = 1, at = mean(rangevals), cex = labsize,col=1)
+                if (yesnoswitch==-1) mtext(paste(i), 1, line = 1, at = mean(rangevals), cex = labsize,col=1)
+                yesnoswitch=yesnoswitch*-1
+        }
+        abline(v = 1:nrow(allComps), col = "grey90", lty=c(1,2,3))
+        abline(v = 1:nrow(allComps), col = "grey90", lty=1, lwd=3)
+        abline(h = 0, col = "grey90", lwd=2)
+        box()
+        
+        for(i in 1:nrow(allComps)){
+                relInds <- intersect(which(NS$WTAA == allComps[i, 1]), which(NS$MUTAA == allComps[i, 2]))
+                relDat <- NS[relInds,]
+                xjit <- rnorm(length(relInds), 0, .1)
+                #changesAA <- relDat$sameAAGroup + 1
+                # changed relDat$logEstSelCoeff  into log10(relDat$EstSelCoeff)
+                points(rep(i, length(relInds)) + xjit, log10(relDat$EstSelCoeff), 
+                       pch = pchs[relDat$bigAAChange[1]+1], col = cols[computeColInds(relDat$MajNt)], cex = .75)
+        }
+        
+        mtext(side = 1, at = 1:length(allComps[,2]), text = paste(allComps[,2]), cex = labsize*.8)
+        mtext("Mutant", 1, line = 0, at = -1, cex = labsize, adj = 1)
+        
+        segments(-6 , -linepos, -0.5, -linepos, col="black", xpd=NA)
+        mtext("Ancestral", 1, line = 1, at = -1, cex = labsize, adj = 1)
+        
+        leg.location<-nrow(allComps)+3
+        legend(leg.location, -1, c("A", "T", "C", "G"), col = c(cols, "black", "black"), pch = c(15, 15, 15, 15), xpd = NA, box.lty = "blank", title = "Ancestral\nnucleotide")
+        legend(leg.location, -2.5, c("No", "Yes"), pch = pchs, xpd = NA, border = "white", box.lwd = 0, title = "Drastic AA\nchange", box.lty = "blank")
+        
+        dev.off()
+}
+
+        
+###################
+        
