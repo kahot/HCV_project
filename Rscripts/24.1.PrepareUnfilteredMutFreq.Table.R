@@ -41,17 +41,17 @@ geno<-c("1A","1B","3A")
 
 #create merged metadata since some are missing from "Output_all/Ts_summary_metadata.1A.csv"
 
-merged.meta1<-read.csv(paste0("Output_all/Overview1A/Overview2.2/D75002-_overview2.2.csv"), stringsAsFactors = F)
-merged.meta1<-merged.meta1[,c(2,3,6,7,22,38,41)]
-colnames(merged.meta1)[3:7]<-paste0(colnames(merged.meta1)[3:7],".1A")
-merged.meta2<-read.csv(paste0("Output_all/Overview1B/Overview2.2/D75046-_overview2.2.csv"), stringsAsFactors = F)
-merged.meta2<-merged.meta2[,c(2,3,6,7,22,38,41)]
-colnames(merged.meta2)[3:7]<-paste0(colnames(merged.meta2)[3:7],".1B")
-merged.meta3<-read.csv(paste0("Output_all/Overview3A/Overview2.2/D75007-_overview2.2.csv"), stringsAsFactors = F)
-merged.meta3<-merged.meta3[,c(2,3,6,7,22,38,41)]
-colnames(merged.meta3)[3:7]<-paste0(colnames(merged.meta3)[3:7],".3A")
+filename<-c("D75002","D75046", "D75007")
+Metadata
+for (i in 1:3){
+        meta<-read.csv(paste0("Output_all/Overview",geno[i],"/Overview2.2/",filename[i],"-_overview2.2.csv"), stringsAsFactors = )
+        meta<-meta[,c(2,3,7,9,22,34,35,38,41)]
+        colnames(meta)[3:9]<-paste0(colnames(meta)[3:9],".",geno[i])
+        Metadata[[i]]<-meta
+        }
 
-merged.meta<-cbind(merged.meta1,merged.meta2[2:7],merged.meta3[2:7])
+merged.meta<-do.call(cbind, Metadata)
+merged.meta<-merged.meta[,-c(10,19)]
 
 genes<-read.csv("Data/HCV_annotations_joined.csv", stringsAsFactors = F)
 gene.vector<-c()
@@ -70,6 +70,11 @@ merged.meta<-cbind(codon[1:nrow(merged.meta)],merged.meta)
 merged.meta<-merged.meta[c(2,1,3:ncol(merged.meta))]
 colnames(merged.meta)[2]<-"codon"
 
+#write.csv(merged.meta, "Output_all/Unfiltered/merged.metadata.csv")
+
+
+
+## 1) combine all mutation frequency regardless of Maj==Ref or not
 for (f in 1:3){
         flist<-list.files(paste0("Output_all/Overview",geno[f],"/Overview2.2/"),pattern="overview2.2.csv")
         
@@ -123,7 +128,7 @@ range(Summary$mean.3A, na.rm=T)
 
 
 #################################
-# separate the sites that are Maj!=Ref
+#2) Separate the sites that are Maj!=Ref
 
 for (f in 1:3){
         flist<-list.files(paste0("Output_all/Overview",geno[f],"/Overview2.2/"),pattern="overview2.2.csv")

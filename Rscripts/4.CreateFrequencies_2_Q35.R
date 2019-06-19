@@ -5,8 +5,8 @@ library(plyr)
 source("Rscripts/baseRscript.R")
 
 
-HCVFiles<-list.files("Output/CSV/",pattern="un.csv")
-MergeFiles<-list.files("Output/CSV/", pattern="me.csv")
+HCVFiles<-list.files("Output1A/CSV/",pattern="un.csv")
+MergeFiles<-list.files("Output1A/CSV/", pattern="me.csv")
 
 freqPatTs<-data.frame(row.names=MergeFiles)
 freqPatTsRef<-data.frame(row.names=MergeFiles)
@@ -21,10 +21,10 @@ for (i in 1:length(MergeFiles)){
         print(i)
         id<-substr(paste(HCVFiles[i]),start=1,stop=7)
         print(id)
-        merge<-read.csv(paste("Output/CSV/",MergeFiles[i],sep=""))
+        merge<-read.csv(paste("Output1A/CSV/",MergeFiles[i],sep=""))
         merge<-merge[,-c(1,2,8,9)]
         colnames(merge)<-c("pos","mA","mC","mG","mT", "mDel","mIns")
-        unmerge<-read.csv(paste("Output/CSV/",HCVFiles[i],sep=""))
+        unmerge<-read.csv(paste("Output1A/CSV/",HCVFiles[i],sep=""))
         unmerge<-unmerge[,-c(1,2,8,9)]
         colnames(unmerge)<-c("pos","uA","uC","uG","uT", "uDel","uIns")
 
@@ -134,7 +134,7 @@ for (i in 1:length(MergeFiles)){
         }
         
         
-        write.csv(SeqData,paste0("Output/SeqDataQ35/SeqData_",id,".csv"))
+        write.csv(SeqData,paste0("Output1A/SeqDataQ35/SeqData_",id,".csv"))
         
         #filter the bases at non-equilibrium
         #SeqData$freq.Ts[SeqData$freq.Ts>=0.2] <-NA
@@ -148,7 +148,7 @@ for (i in 1:length(MergeFiles)){
         #SeqData$freq.maj[SeqData$TotalReads<100]<-NA
         
         #Mutation.freq.filtered<-SeqData[,c("pos","freq.Ts","freq.Ts.ref","freq.transv","freq.transv.ref")]
-        #write.csv(Mutation.freq.filtered, paste0("Output/Mut.freq/",id,"_mut.freq.filtered.csv"))
+        #write.csv(Mutation.freq.filtered, paste0("Output1A/Mut.freq/",id,"_mut.freq.filtered.csv"))
 }
 
 

@@ -3,112 +3,51 @@ library(tidyverse)
 library(zoo)
 library(plotrix)
 library(sfsmisc)
-source("Rscripts/baseRscript.R")
-
-#Script to create minor variant frequency figure across the genome. 
-
-#Prep data
-
-
-HCVFiles_overview<-list.files("Output3A/Overview2/",pattern="overview2.csv")
-
-Overview_summary<-list()
-for (i in 1:length(HCVFiles_overview)){ 
-        overviews<-read.csv(paste0("Output3A/Overview2/",HCVFiles_overview[i]),stringsAsFactors=FALSE)
-        overviews<-overviews[,-1]
-        Overview_summary[[i]]<-overviews
-        names(Overview_summary)[i]<-substr(paste(HCVFiles_overview[i]),start=1,stop=7)
-}
-
-source("Rscripts/MutationFreqSum.R")
-
-
-MutFreq_Ts<-list()
-MutFreq_tv1<-list()
-MutFreq_tv2<-list()
-MutFreq_tvs<-list()
-MutFreq_all<-list()
-
-for (i in 1:length(Overview_summary)){
-        dat<-Overview_summary[[i]]
-        filename<-names(Overview_summary)[i]
-        
-        MutFreq_Ts[[i]]<-dat[,c("pos","freq.Ts")] 
-        MutFreq_tv1[[i]]<-dat[,c("pos","freq.transv1")] 
-        MutFreq_tv2[[i]]<-dat[,c("pos","freq.transv2")] 
-        MutFreq_tvs[[i]]<-dat[,c("pos","freq.transv")] 
-        MutFreq_all[[i]]<-dat[,c("pos","freq.mutations")] 
-        
-        names(MutFreq_Ts)[i]<-filename
-        names(MutFreq_tv1)[i]<-filename
-        names(MutFreq_tv2)[i]<-filename
-        names(MutFreq_tvs)[i]<-filename
-        names(MutFreq_all)[i]<-filename
-        
-        
-}
-#assign column names for the list
-for (i in 1:length(MutFreq_Ts)) {
-        colnames(MutFreq_Ts[[i]])<-c("pos",paste0(names(MutFreq_Ts[i])))
-        colnames(MutFreq_tv1[[i]])<-c("pos",paste0(names(MutFreq_tv1[i])))
-        colnames(MutFreq_tv2[[i]])<-c("pos",paste0(names(MutFreq_tv2[i])))
-        colnames(MutFreq_tvs[[i]])<-c("pos",paste0(names(MutFreq_tvs[i])))
-        colnames(MutFreq_all[[i]])<-c("pos",paste0(names(MutFreq_all[i])))
-}
-
-TsMutFreq<-MutFreq_Ts%>% purrr::reduce(full_join, by='pos')
-Tv1.MutFreq<-MutFreq_tv1 %>% purrr::reduce(full_join, by='pos')
-Tv2.MutFreq<-MutFreq_tv2 %>% purrr::reduce(full_join, by='pos')
-Tvs.MutFreq<-MutFreq_tvs %>% purrr::reduce(full_join, by='pos')
-AllMutFreq<-MutFreq_all %>% purrr::reduce(full_join, by='pos')
-
-
-s<-length(Overview_summary)
-mean(rowMeans(TsMutFreq[2:(s+1)],na.rm=T),na.rm=T) #1A 0.008879231, 3A: 0.006822925
-mean(rowMeans(Tvs.MutFreq[2:(s+1)],na.rm=T),na.rm=T) # 1A: 0.001690682  3A: 0.00125646
-mean(rowMeans(AllMutFreq[2:(s+1)],na.rm=T),na.rm=T) # 1A:0.01056991    3A: 0.008079385
-
-#####
-# Write csv files
-write.csv(TsMutFreq, "Output3A/MutFreq/TsMutFreq_maj_summary.3A.csv")
-write.csv(Tvs.MutFreq, "Output3A/MutFreq/TvsMutFreq_maj_summary.3A.csv")
-write.csv(AllMutFreq, "Output3A/MutFreq/AllMutFreq_maj_summary.3A.csv")
 
 
 #############################
 ##### read the saved csv files
-TsMutFreq<-read.csv("Output/MutFreq/TsMutFreq_maj_summary.csv",stringsAsFactors = F)
-Tv1.MutFreq<-read.csv("Output/MutFreq/Tv1MutFreq_maj_summary.csv",stringsAsFactors = F)
-Tv2.MutFreq<-read.csv("Output/MutFreq/Tv2MutFreq_maj_summary.csv",stringsAsFactors = F)
-Tvs.MutFreq<-read.csv("Output/MutFreq/TvsMutFreq_maj_summary.csv",stringsAsFactors = F)
-AllMutFreq<-read.csv("Output/MutFreq/AllMutFreq_maj_summary.csv",stringsAsFactors = F)
+TsMutFreq  <-read.csv("Output1A/MutFreq/TsMutFreq_maj_summary.csv",stringsAsFactors = F)
+#Tv1.MutFreq<-read.csv("Output1A/MutFreq/Tv1MutFreq_maj_summary.csv",stringsAsFactors = F)
+#Tv2.MutFreq<-read.csv("Output1A/MutFreq/Tv2MutFreq_maj_summary.csv",stringsAsFactors = F)
+Tvs.MutFreq<-read.csv("Output1A/MutFreq/TvsMutFreq_maj_summary.csv",stringsAsFactors = F)
+AllMutFreq <-read.csv("Output1A/MutFreq/AllMutFreq_maj_summary.csv",stringsAsFactors = F)
 
 AllMutFreq<-AllMutFreq[,-1]
 TsMutFreq<-TsMutFreq[,-1]
 Tvs.MutFreq<-Tvs.MutFreq[,-1]
+
+
 ###################################
+##Create minor variant (mutation) frequency summary 
 
-
-
-##Create SNV (mutation) frequency summary 
 #total number of samples 
-s<-length(Overview_summary)
+HCVFiles_overview<-list.files("Output1A/Overview2/",pattern="overview2.csv")
+s<-length(HCVFiles_overview)
 
 genes<-read.csv("Data/HCV_annotations2.csv",stringsAsFactors = F)
 
 MFsummary<-data.frame("Mean"=matrix(nrow=3))
 rownames(MFsummary)<-c("AllMF","Transition","Transversion")
 for (i in 1:3){
-        if (i==1) {SNVFreq<-AllMutFreq; title<-'Average Total Mutation Freq';yax<-"Average mutation frequency"; ylow<-0.0001;yhigh<-1}
-        if (i==2) {SNVFreq<-TsMutFreq; title<-'Average Transition Mutation Freq';yax<- "Average transition mutation frequency";ylow<-0.0001;yhigh<-1}
-        if (i==3) {SNVFreq<-Tvs.MutFreq; title<-'Average Transversion Mutation Freq';yax<- "Average transversion mutation frequency";ylow<-0.00001;yhigh<-0.1}        
-        
-        SNVFreq$mean<-apply(SNVFreq[2:(s+1)], 1, mean, na.rm=T)
+        if (i==1) {SNVFreq<-AllMutFreq; title<-'Average Total Mutation Freq';name<-"Total_Mutations_1A";yax<-"Average mutation frequency"; ylow<-0.0001;yhigh<-1}
+        if (i==2) {SNVFreq<-TsMutFreq; title<-'Average Transition Mutation Freq';name<-"Transition_1A";yax<- "Average transition mutation frequency";ylow<-0.0001;yhigh<-1}
+        if (i==3) {SNVFreq<-Tvs.MutFreq; title<-'Average Transversion Mutation Freq';name<-"Transversion_1A";yax<- "Average transversion mutation frequency";ylow<-0.00001;yhigh<-0.1}        
          
         #Count the number of NAs per row
         SNVFreq$NofNA<-apply(SNVFreq[2:(s+1)], 1, function(x)sum(is.na(x))) #8371 sites
         SNVFreq1<-SNVFreq[which(SNVFreq$NofNA<0.5*s),]
+        SNVFreq1$mean<-apply(SNVFreq1[2:(s+1)], 1, mean, na.rm=T)
         print(nrow(SNVFreq1))
+        
+        #2. Filter out sites with only one data points per row
+        SNVFreq2<-SNVFreq[-which(SNVFreq$NofNA==(s-1)|SNVFreq$NofNA==s),] 
+        SNVFreq2$mean<-apply(SNVFreq2[2:(s+1)], 1, mean, na.rm=T)
+        
+        DFmean<-SNVFreq1[,c("pos","mean")]
+        write.csv(DFmean, paste0("Output1A/MutFreq/Ave.MF.",name,'.csv'))
+        
+        
         startnuc<-SNVFreq1$pos[1]
         endnuc<-SNVFreq1$pos[nrow(SNVFreq1)] #8635
         
@@ -116,14 +55,22 @@ for (i in 1:3){
         MFsummary$range.low[i]<-range(SNVFreq1$mean)[1]
         MFsummary$range.high[i]<-range(SNVFreq1$mean)[2]
         MFsummary$SE[i]<-std.error(SNVFreq1$mean)
+        MFsummary$SD[i]<-sd(SNVFreq1$mean)
         
-        n<-data.frame("pos"=c(startnuc:endnuc))
+        
+        MFsummary$Mean2[i]<-mean(SNVFreq2$mean)
+        MFsummary$range.low2[i]<-range(SNVFreq2$mean)[1]
+        MFsummary$range.high2[i]<-range(SNVFreq2$mean)[2]
+        MFsummary$SE2[i]<-std.error(SNVFreq2$mean)
+        MFsummary$SD2[i]<-sd(SNVFreq2$mean)
+       
+        n<-data.frame("pos"=c(startnuc:(endnuc-20)))
         SNVFreqs<-merge(n,SNVFreq1,by="pos",all.x=T)
         
         cols <- c("#66CCEE","#228833","#CCBB44","#EE6677","#AA3377","#4477AA","#BBBBBB")
         
         #plot the average SNV frequency across the genome (based on H77)
-        pdf(paste0("Output3A/Figures/",title,".pdf"),width=15,height=7.5)
+        pdf(paste0("Output1A/SummaryFigures/",title,".pdf"),width=15,height=7.5)
         plot(mean~pos, data=SNVFreqs,t="n",log='y',yaxt='n',xlab='Genome position (H77)',ylab=paste0(yax),
              main=paste0(title),ylim=c(ylow,yhigh),xlim=c(340,8500))
         eaxis(side = 2, at = 10^((-0):(-(5))), cex=2)
@@ -165,7 +112,13 @@ for (i in 1:3){
         
 }
 
-write.csv(MFsummary,"Output/SummaryStats/MutFreqSummary_Table.csv")
+write.csv(MFsummary,"Output1A/MutFreq/MutFreqSummary_Table.csv")
+
+
+
+
+
+
 
 ## Create a condensed figure for a poster
 
@@ -233,11 +186,12 @@ dev.off()
 
 ########################################
 ### Plot mutation freq. across the genome based on the mutation types 
+
 dat<-Overview_summary[[3]]
 mutationtypes<-dat[,c("pos","MajNt","ref","Type","Type.tv1","Type.tv2")]
 muttypes2<-dat[,c("pos","MajNt","Type","Type.tv1","Type.tv2","makesCpG","makesCpG.tv1","makesCpG.tv2")]
 
-t1<-TsMutFreq
+t1<-TsMutFreq[TsMutFreq$pos>=342,]
 t1$mean<-apply(t1[2:(s+1)], 1, mean, na.rm=T)
 t1$NofNA<-apply(t1[2:(s+1)], 1, function(x)sum(is.na(x)))
 t2<-t1[which(t1$NofNA<0.5*s),]
@@ -249,7 +203,7 @@ maxpos<-mfs$pos[nrow(mfs)]
 n<-data.frame("pos"=c(1:maxpos))
 MF3<-merge(n,mfs,by="pos",all.x=T)
 
-pdf(paste0("Output/SummaryFigures/Transition_Mut_Freq_based_on_Mutation_Types.pdf"),width=15,height=7.5)
+pdf(paste0("Output1A/SummaryFigures/Transition_Mut_Freq_based_on_Mutation_Types.pdf"),width=15,height=7.5)
 maxnuc=8600
 par(mar = c(3,5,1,2))
 #selcoeffcolumn <-SC3$mean 
@@ -321,8 +275,8 @@ dev.off()
 #2) ############
 #Transversion mutationsfigure
 #Format the transversion mutation types to syn, nonsyn, mixed, and nonsesne.
-tv1<-Tv1.MutFreq
-tv2<-Tv2.MutFreq
+tv1<-Tv1.MutFreq[Tv1.MutFreq$pos>=342,]
+tv2<-Tv2.MutFreq[Tv2.MutFreq$pos>=342,]
 s<-length(Overview_summary)
 tv1$mean<-apply(tv1[2:(s+1)], 1, mean, na.rm=T)
 tv2$mean<-apply(tv2[2:(s+1)], 1, mean, na.rm=T)
@@ -348,70 +302,17 @@ for (i in 1:nrow(MFtv)){
 }        
 
 ######
-#2.1 plot the summary trnasversion mutations 
-
-maxpos<-MFtv$pos[nrow(MFtv)]
-n<-data.frame("pos"=c(1:maxpos))
-MFtv.1<-merge(n,MFtv,by="pos",all.x=T)
-
-
-col80<-c("#FFFFFFCC","#228833CC","#CCBB44CC","#EE6677CC","#AA3377CC")
-
-pdf(paste0("Output/SummaryFigures/Transv_Mut_Freq_based_on_Mutation_Types.pdf"),width=15,height=7.5)
-maxnuc=8600
-par(mar = c(3,5,1,2))
-
-plot(MFtv.1$pos[1:maxnuc],MFtv.1$mean[1:maxnuc],
-     log="y", ylab="Average mutation frequency",cex.lab=1.4,
-     yaxt="n", xlab="",xaxt='n',
-     col="darkgrey",t="n",pch=".", ylim=c(3.2*10^-6,0.1),xlim=c(340,maxnuc))
-axis(1,at=c(seq(500,8500,by=1000)), labels=c(seq(500,8500,by=1000)))
-eaxis(side = 2, at = 10^((-1):(-(6))), cex=2)
-
-for(i in 1:6){abline(h = 1:10 * 10^(-i), col = "gray60")}
-
-for (i in 1:maxnuc){
-        if (is.na(MFtv.1$Type.tvs[i])) next
-        if (MFtv.1$Type.tvs[i]=="stop") {c=1;p=21}
-        if (MFtv.1$Type.tvs[i]=="syn") {c=col80[3];p=21}
-        if (MFtv.1$Type.tvs[i]=="nonsyn"&MFtv.1$ref[i]%in%c("c","g")) {c=col80[4];p=21}
-        if (MFtv.1$Type.tvs[i]=="nonsyn"&MFtv.1$ref[i]%in%c("a","t")) {c=col80[5];p=21}
-        if (MFtv.1$Type.tvs[i]=="mixed"){c=col80[2];p=21}
-        points(MFtv.1$pos[i],mean(MFtv.1$mean[i],MFtv.1$mean2[i]),pch=p,
-               col='gray30',lwd = .5, bg=c,cex=.7)
-        
-}
-
-#Add legend
-legpos=7700; legposV=0.05
-rect(legpos, .29*legposV, (legpos+1000), 1.7*legposV, density = NULL, angle = 45,col=alpha("white",1))
-points((legpos+100),legposV/0.7,pch=21,bg=1,col=col80[1],cex=1)
-text((legpos+150),legposV/0.7,"Nonsense",adj=0, cex=1)
-points((legpos+100),legposV,pch=21,bg=col80[4],col=1,cex=1)
-text((legpos+150),legposV,"Non-syn, C/G",adj=0, cex=1)
-points((legpos+100),legposV*0.7,pch=21,bg=col80[5],col=1,cex=1)
-text((legpos+150),legposV*0.7,"Non-syn, A/T",adj=0, cex=1)
-points((legpos+100),legposV*0.49,pch=21,bg=col80[2],col=1,cex=1)
-text((legpos+150),legposV*0.49,"Mixed",adj=0, cex=1)
-points((legpos+100),legposV*0.35,pch=21,bg=cols[3],col=1,cex=1)
-text((legpos+150),legposV*0.35,"Syn",adj=0, cex=1)
-
-dev.off()
-
-#2.2. plot trnasversion mutations separately (Type 1 and Type 2)
-
+#2.1. plot trnasversion mutations separately (Type 1 and Type 2)
 
 maxpos<-tv1.3$pos[nrow(tv1.3)]
 n<-data.frame("pos"=c(1:maxpos))
 tv1.4<-merge(n,tv1.3,by="pos",all.x=T)
 tv2.4<-merge(n,tv2.3,by="pos",all.x=T)
-
 col80<-c("#FFFFFFCC","#228833CC","#CCBB44CC","#EE6677CC","#AA3377CC")
 
-pdf(paste0("Output/SummaryFigures/Transv_MutFreq_Mutation_Types_separate.pdf"),width=15,height=7.5)
+pdf(paste0("Output1A/SummaryFigures/Transv_MutFreq_Mutation_Types_separate.pdf"),width=15,height=7.5)
 maxnuc=8600
 par(mar = c(3,5,1,2))
-
 plot(tv1.4$pos[1:maxnuc],tv1.4$mean[1:maxnuc],
      log="y", ylab="Average mutation frequency",cex.lab=1.4,
      yaxt="n", xlab="",xaxt='n',
@@ -469,10 +370,55 @@ for (j in 1:(nrow(genes)-1)){
 }
 
 box()
-
-
 dev.off()
 
+
+#2.2 plot the summary trnasversion mutations 
+maxpos<-MFtv$pos[nrow(MFtv)]
+n<-data.frame("pos"=c(1:maxpos))
+MFtv.1<-merge(n,MFtv,by="pos",all.x=T)
+col80<-c("#FFFFFFCC","#228833CC","#CCBB44CC","#EE6677CC","#AA3377CC")
+
+pdf(paste0("Output1A/SummaryFigures/Transv_Mut_Freq_based_on_Mutation_Types.pdf"),width=15,height=7.5)
+maxnuc=8600
+par(mar = c(3,5,1,2))
+
+plot(MFtv.1$pos[1:maxnuc],MFtv.1$mean[1:maxnuc],
+     log="y", ylab="Average mutation frequency",cex.lab=1.4,
+     yaxt="n", xlab="",xaxt='n',
+     col="darkgrey",t="n",pch=".", ylim=c(3.2*10^-6,0.1),xlim=c(340,maxnuc))
+axis(1,at=c(seq(500,8500,by=1000)), labels=c(seq(500,8500,by=1000)))
+eaxis(side = 2, at = 10^((-1):(-(6))), cex=2)
+
+for(i in 1:6){abline(h = 1:10 * 10^(-i), col = "gray60")}
+
+for (i in 1:maxnuc){
+        if (is.na(MFtv.1$Type.tvs[i])) next
+        if (MFtv.1$Type.tvs[i]=="stop") {c=1;p=21}
+        if (MFtv.1$Type.tvs[i]=="syn") {c=col80[3];p=21}
+        if (MFtv.1$Type.tvs[i]=="nonsyn"&MFtv.1$ref[i]%in%c("c","g")) {c=col80[4];p=21}
+        if (MFtv.1$Type.tvs[i]=="nonsyn"&MFtv.1$ref[i]%in%c("a","t")) {c=col80[5];p=21}
+        if (MFtv.1$Type.tvs[i]=="mixed"){c=col80[2];p=21}
+        points(MFtv.1$pos[i],mean(MFtv.1$mean[i],MFtv.1$mean2[i]),pch=p,
+               col='gray30',lwd = .5, bg=c,cex=.7)
+        
+}
+
+#Add legend
+legpos=7700; legposV=0.05
+rect(legpos, .29*legposV, (legpos+1000), 1.7*legposV, density = NULL, angle = 45,col=alpha("white",1))
+points((legpos+100),legposV/0.7,pch=21,bg=1,col=col80[1],cex=1)
+text((legpos+150),legposV/0.7,"Nonsense",adj=0, cex=1)
+points((legpos+100),legposV,pch=21,bg=col80[4],col=1,cex=1)
+text((legpos+150),legposV,"Non-syn, C/G",adj=0, cex=1)
+points((legpos+100),legposV*0.7,pch=21,bg=col80[5],col=1,cex=1)
+text((legpos+150),legposV*0.7,"Non-syn, A/T",adj=0, cex=1)
+points((legpos+100),legposV*0.49,pch=21,bg=col80[2],col=1,cex=1)
+text((legpos+150),legposV*0.49,"Mixed",adj=0, cex=1)
+points((legpos+100),legposV*0.35,pch=21,bg=cols[3],col=1,cex=1)
+text((legpos+150),legposV*0.35,"Syn",adj=0, cex=1)
+
+dev.off()
 
 
 
@@ -480,7 +426,6 @@ dev.off()
 ##### Test if mean frequenceis differ between mutation types
 #testing the mean of means
 #1.Mutation frequencies (all together)  
-
 for (i in c("t2","tv1.2","tv2.2")) {
         dat<-get(i) 
         FreqData<-merge(muttypes2,dat,by='pos')
@@ -533,80 +478,8 @@ for (i in c("t2","tv1.2","tv2.2")) {
                 WilcoxTest.results$P.value[r]<-result[[3]]
                 
         }
-        write.csv(WilcoxTest.results,paste0("Output/SummaryStats/WilcoxTestResults_MajMutFreq_",filename,".csv"))
+        write.csv(WilcoxTest.results,paste0("Output1A/SummaryStats/WilcoxTestResults_MajMutFreq_",filename,".csv"))
         
 }
 
 
-
-#2.Mutation frequencies - base by base 
-source("Rscripts/MutationFreqSum.R")
-dat<-Overview_summary[[3]]
-muttypes2<-dat[,c("pos","MajNt","Type","Type.tv1","Type.tv2","makesCpG","makesCpG.tv1","makesCpG.tv2")]
-
-WilcoxTest.results<-data.frame(Nt="",test="",P.value="")
-WilcoxTest.results<-data.frame(matrix(ncol=3,nrow=2))
-colnames(WilcoxTest.results)<-c("nt","test","P.value")
-
-for (i in c("A","T")) {
-        scpg<-get(paste0(i,"_syn_CpG")) 
-        sncpg<-get(paste0(i,"_syn_NonCpG")) 
-        nscpg<-get(paste0(i,"_nonsyn_CpG")) 
-        nsncpg<-get(paste0(i,"_nonsyn_NonCpG")) 
-        fname<-i
-        result1<-wilcox.test(scpg, sncpg, alternative = "greater", paired = FALSE) 
-        result2<-wilcox.test(nscpg,nsncpg,alternative = "greater", paired = FALSE) # p-value = 0.952
-        
-        for (r in 1:2){
-                result<-get(paste0('result',r))
-                WilcoxTest.results$nt[r]<-i
-                WilcoxTest.results$test[r]<-result[[7]]
-                WilcoxTest.results$P.value[r]<-result[[3]]
-                }
-        write.csv(WilcoxTest.results,paste0("Output/SummaryStats/Wilcox_Maj_TsMutFreq_",fname,".csv"))
-}       
- 
-
-
-for (i in c("A","G")) {
-        scpg<-get(paste0(i,"_tv1_syn_CpG")) 
-        sncpg<-get(paste0(i,"_tv1_syn_NonCpG")) 
-        nscpg<-get(paste0(i,"_tv1_nonsyn_CpG")) 
-        nsncpg<-get(paste0(i,"_tv1_nonsyn_NonCpG")) 
-        fname<-paste0(i,"_Tv")
-        result1<-wilcox.test(scpg, sncpg, alternative = "greater", paired = FALSE) 
-        result2<-wilcox.test(nscpg,nsncpg,alternative = "greater", paired = FALSE) # p-value = 0.952
-        
-        for (r in 1:2){
-                result<-get(paste0('result',r))
-                WilcoxTest.results$nt[r]<-i
-                WilcoxTest.results$test[r]<-result[[7]]
-                WilcoxTest.results$P.value[r]<-result[[3]]
-        }
-        write.csv(WilcoxTest.results,paste0("Output/SummaryStats/Wilcox_Maj_TsMutFreq_",fname,".csv"))
-}
-
-
-
-for (i in c("C","T")) {
-        scpg<-get(paste0(i,"_tv2_syn_CpG")) 
-        sncpg<-get(paste0(i,"_tv2_syn_NonCpG")) 
-        nscpg<-get(paste0(i,"_tv2_nonsyn_CpG")) 
-        nsncpg<-get(paste0(i,"_tv2_nonsyn_NonCpG")) 
-        fname<-paste0(i,"_Tv")
-        result1<-wilcox.test(scpg, sncpg, alternative = "greater", paired = FALSE) 
-        result2<-wilcox.test(nscpg,nsncpg,alternative = "greater", paired = FALSE) # p-value = 0.952
-        
-        for (r in 1:2){
-                result<-get(paste0('result',r))
-                WilcoxTest.results$nt[r]<-i
-                WilcoxTest.results$test[r]<-result[[7]]
-                WilcoxTest.results$P.value[r]<-result[[3]]
-        }
-        write.csv(WilcoxTest.results,paste0("Output/SummaryStats/Wilcox_Maj_TsMutFreq_",fname,".csv"))
-}
-
-hist(G_tv1_syn_CpG)
-hist(G_tv1_syn_NonCpG)
-boxplot(log(G_tv1_syn_CpG),log(G_tv1_syn_NonCpG))
-       

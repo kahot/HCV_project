@@ -5,31 +5,15 @@ library(purrr)
 source("Rscripts/baseRscript.R")
 
 
-#Load the overview files 
+HCVFiles3<-list.files("Output1A/Overview3/",pattern="overview3.csv")
 
-HCVFiles_overview3<-list.files("Output/Overview_filtered/",pattern="overview3.csv")
-FilteredOverview<-list()
-for (i in 1:length(HCVFiles_overview3)){ 
-        overviews<-read.csv(paste0("Output/Overview_filtered/",HCVFiles_overview3[i]),stringsAsFactors=FALSE)
-        overviews<-overviews[,-1]
-        FilteredOverview[[i]]<-overviews
-        names(FilteredOverview)[i]<-substr(paste(HCVFiles_overview3[i]),start=1,stop=7)
-}
+#  #### read the filtered MF files from 10.1.2
 
-
-############
-#  #### read the filtered MF files from 10.1
-TsMutFreq<-read.csv("Output/MutFreq/Filtered_Transition_MutFreqSummary.csv",stringsAsFactors = F)
-Tv1.MutFreq<-read.csv("Output/MutFreq/Filtered_Transv1_MutFreqSummary.csv",stringsAsFactors = F)
-Tv2.MutFreq<-read.csv("Output/MutFreq/Filtered_Transv2_MutFreqSummary.csv",stringsAsFactors = F)
-Tvs.MutFreq<-read.csv("Output/MutFreq/Filtered_Transv_MutFreqSummary.csv",stringsAsFactors = F)
-AllMutFreq<-read.csv("Output/MutFreq/Filtered_All_MutFreqSummary.csv",stringsAsFactors = F)
-
-TsMutFreq<-TsMutFreq[,-1]
-Tv1.MutFreq<-Tv1.MutFreq[,-1]
-Tv2.MutFreq<-Tv2.MutFreq[,-1]
-Tvs.MutFreq<-Tvs.MutFreq[,-1]
-AllMutFreq<-AllMutFreq[,-1]
+TsMutFreq  <-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv",stringsAsFactors = F,row.names=1)
+Tv1.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tv1.MutFreq.Q35.csv",stringsAsFactors = F,row.names=1)
+Tv2.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tv2.MutFreq.Q35.csv",stringsAsFactors = F,row.names=1)
+Tvs.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tvs.MutFreq.Q35.csv",stringsAsFactors = F,row.names=1)
+AllMutFreq <-read.csv("Output1A/MutFreq.filtered/Filtered.AllMutFreq.Q35.csv", stringsAsFactors = F,row.names=1)
 
 mf.files<-list()
 mf.files[[1]]<-TsMutFreq
@@ -43,7 +27,7 @@ names(mf.files)[3]<-"Tv2.MutFreq"
 names(mf.files)[4]<-"Tvs.MutFreq"
 names(mf.files)[5]<-"AllMutFreq"
 
-s<-length(FilteredOverview)
+s<-length(HCVFiles3)
 
 
 #####################################

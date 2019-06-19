@@ -5,7 +5,7 @@ library(tidyverse)
 source("Rscripts/baseRscript.R")
 
 #Get the file names (SeqData files)
-HCVFiles_SeqData<-list.files("Output/SeqDataQ35/",pattern="SeqData")
+HCVFiles_SeqData<-list.files("Output1A/SeqDataQ35/",pattern="SeqData")
 
 #create a Overview file for each sample
 Overview<-list()
@@ -13,7 +13,7 @@ for (i in 1:length(HCVFiles_SeqData)){
         #for (i in 1:1){
         id<-substr(paste(HCVFiles_SeqData[i]),start=9,stop=15)
         print(id)
-        OverviewDF<-read.csv(paste0("Output/SeqDataQ35/",HCVFiles_SeqData[i]),stringsAsFactors=FALSE)
+        OverviewDF<-read.csv(paste0("Output1A/SeqDataQ35/",HCVFiles_SeqData[i]),stringsAsFactors=FALSE)
         OverviewDF<-OverviewDF[,-1]
 
         ref<-read.dna("Data/HCVref.fasta", format = "fasta",as.character=TRUE)
@@ -199,7 +199,7 @@ for (i in 1:length(Overview)){
         }
         
                 
-        write.csv(OverviewDF,paste0("Output/Overview2/",id,"overview2.csv"))
+        write.csv(OverviewDF,paste0("Output1A/Overview2/",id,"overview2.csv"))
         
         Overview_summary[[i]]<-OverviewDF
         print(id)
@@ -209,7 +209,7 @@ for (i in 1:length(Overview)){
 ###########################################
 
 ### Read depths for all files ###
-HCVFiles_SeqData<-list.files("Output/SeqData/",pattern="SeqData")
+HCVFiles_SeqData<-list.files("Output1A/SeqData/",pattern="SeqData")
 ReadsSummary<-data.frame(Sample_ID=matrix(nrow=length(HCVFiles_SeqData)))
 ReadsSummary$MaxDepth<-""
 ReadsSummary$AveDepth<-""
@@ -219,9 +219,9 @@ for (i in 1:length(HCVFiles_SeqData)){
         id<-substr(paste(HCVFiles_SeqData[i]),start=9,stop=15)
         ReadsSummary$Sample_ID[i]<-id
         print(id)
-        SeqData<-read.csv(paste("Output/SeqDataQ35/",HCVFiles_SeqData[i],sep=""))
+        SeqData<-read.csv(paste("Output1A/SeqDataQ35/",HCVFiles_SeqData[i],sep=""))
         ReadsSummary$MaxDepth[i]<-max(SeqData$TotalReads,na.rm=T)
         ReadsSummary$AveDepth[i]<-mean(SeqData$TotalReads,na.rm=T)
 }
         
-write.csv(ReadsSummary,"Output/SeqDataQ35/ReadsSummary_1A.csv")      
+write.csv(ReadsSummary,"Output1A/SeqDataQ35/ReadsSummary_1A.csv")      

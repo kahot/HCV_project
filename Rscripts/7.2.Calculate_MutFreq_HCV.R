@@ -8,11 +8,11 @@ library(grid)
 source("Rscripts/baseRscript.R")
 
 # read the files saved in Overview_output:
-HCVFiles_overview<-list.files("Output/Overview_output/",pattern="overview.csv")
+HCVFiles_overview<-list.files("Output1A/Overview1/",pattern="overview.csv")
 
 Overview_summary<-list()
 for (i in 1:length(HCVFiles_overview)){ 
-        overviews<-read.csv(paste0("Output/Overview_output/",HCVFiles_overview[i]),stringsAsFactors=FALSE)
+        overviews<-read.csv(paste0("Output1A/Overview1/",HCVFiles_overview[i]),stringsAsFactors=FALSE)
         overviews<-overviews[,-1]
         Overview_summary[[i]]<-overviews
         names(Overview_summary)[i]<-substr(paste(HCVFiles_overview[i]),start=1,stop=7)
@@ -23,19 +23,19 @@ for (i in 1:length(HCVFiles_overview)){
 #Run the following scripts to get the summary frequency data:
 source("Rscripts/MutationFreqSum.R")
 
-#the results are saved in Output/MutFreq/ directory
+#the results are saved in Output1A/MutFreq/ directory
 ################################################
 
 # Data Prep: Calculate the average mutation frequency for each mutation type
 
 #Plot summary of 1) Transistion mutations
-TransFiles<-list.files("Output/MutFreq/maj/",pattern="Transition.csv")
+TransFiles<-list.files("Output1A/MutFreq/Maj/",pattern="Transition.csv")
 TransFiles<-TransFiles[-6]
 
 NofSamples<-length(Overview_summary)
 
 for (i in 1:length(TransFiles)){
-        mdata<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata<-read.csv(paste0("Output1A/MutFreq/Maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
         mdata<-mdata[1:NofSamples,]
         colnames(mdata)<-c("A","T","C","G")
         Dat<-melt(mdata)
@@ -50,9 +50,9 @@ for (i in 1:length(TransFiles)){
                 ggtitle(paste("Ave. freq of ",filename," mutation")) + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
                 theme(plot.title = element_text(hjust = 0.5))
         if (i==1|i==2){
-                ggsave(filename=paste0("Output/MutFreq/Fig.maj/",filename,".pdf"),width=5, height=7, units='in',device='pdf', plot=MFplot)}
+                ggsave(filename=paste0("Output1A/MutFreq/Maj/",filename,".pdf"),width=5, height=7, units='in',device='pdf', plot=MFplot)}
         else{
-                ggsave(filename=paste0("Output/MutFreq/Fig.maj/",filename,".pdf"), width=9, height=7, units='in',device='pdf',plot=MFplot)
+                ggsave(filename=paste0("Output1A/MutFreq/Maj/",filename,".pdf"), width=9, height=7, units='in',device='pdf',plot=MFplot)
         }
         
 }
@@ -60,7 +60,7 @@ for (i in 1:length(TransFiles)){
 ########### Same Transition Mutation Figures but two plots side by side #########
 #plots Syn vs NonSyn each other:
 for (i in 5:6){ 
-        mdata<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata<-read.csv(paste0("Output1A/MutFreq/Maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
         mdata<-mdata[1:NofSamples,]
         colnames(mdata)<-c("A","T","C","G")
         Dat<-melt(mdata)
@@ -79,95 +79,49 @@ for (i in 5:6){
         assign(plotname,MFplot)
         }
 require(gridExtra)
-pdf("Output/MutFreq/Fig.maj/SynvsNonsynTs.pdf",width=10, height=7)
+pdf("Output1A/MutFreq/Maj/SynvsNonsynTs.pdf",width=10, height=7)
 grid.arrange(plot_5, plot_6, ncol=2)
 dev.off()
 
-# Plot Syn CpgMaking vs. NonCpG
-for (i in c(2,4)){
-        mdata<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
-        mdata<-mdata[1:NofSamples,]
-        colnames(mdata)<-c("A","T","C","G")
-        Dat<-melt(mdata)
-        Dat<-Dat[!(is.na(Dat$value)),]
-        
-        filename<-sub(".csv$","",paste(TransFiles[i]))
-        
-        MFplot<-ggplot(Dat,aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.5)+labs(x="Nucleotide",y="Mutation frequency")+
-                scale_fill_manual(values=c("#66CCEECC","#228833CC","#CCBB44CC","#EE6677CC")) + theme_classic()+
+#### #compare CpG creating vs. non-CpGcreating separately for syn & nonsyn
+
+for (i in 1:2){
+        if (i==1) type<-"nonsynonymous"
+        if (i==2) type<-"synonymous"
+        #read CpG-syn data
+        mdata1<-read.csv(paste0("Output1A/MutFreq/Maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata1<-mdata1[1:NofSamples,1:2] #remove SE values
+        colnames(mdata1)<-c("A(CpG)","T(CpG)")
+        #read nonCpg-syn data
+        mdata2<-read.csv(paste0("Output1A/MutFreq/Maj/",TransFiles[i+2]),stringsAsFactors=FALSE,row.names=1)
+        mdata2<-mdata2[1:NofSamples,] #remove SE values
+        colnames(mdata2)<-c("A","T","C","G")
+
+        trans<-cbind(mdata1,mdata2)
+        transm<-melt(trans)
+        transm<-transm[!(is.na(transm$value)),]
+
+        MFplot1<-ggplot(transm,aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.5)+labs(x="Nucleotide",y="Mutation frequency")+
+                scale_fill_manual(values=c("#66CCEE","#228833","#66CCEE99","#22883399","#CCBB44CC","#EE6677CC")) + theme_classic()+
                 guides(fill=FALSE) +theme(axis.text.x = element_text(size =10))+
                 theme(axis.text.y = element_text(size =10))+
-                ggtitle(paste(filename)) + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
-                theme(plot.title = element_text(hjust = 0.5))
-        plotname<-paste0("plot_",i)
-        
-        assign(plotname,MFplot)
+                ggtitle(paste0("CpG vs. nonCpG ", type, " mutations")) + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
+                theme(plot.title = element_text(hjust = 0.5))+
+                geom_vline(xintercept = 2.5)
+
+        ggsave(filename=paste0("Output1A/MutFreq/Maj/CpGvsNonCpG.",type,".Ts.pdf"),width=6.3, height=5, units='in',device='pdf', plot=MFplot1)
 }
-pdf("Output/MutFreq/Fig.maj/CpG.vs.NonCpG.SynTs.pdf",width=10, height=7)
-grid.arrange(plot_2, plot_4, ncol=2)
-dev.off()
-
-  
-#### #compare CpG creating vs. non-CpGcreating Plot A vs A, G vs G etc.
-
-#read CpG-syn data
-mdata1<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[2]),stringsAsFactors=FALSE,row.names=1)
-mdata1<-mdata1[1:NofSamples,1:2] #remove SE values
-colnames(mdata1)<-c("A(CpG)","T(CpG)")
-#read nonCpg-syn data
-mdata2<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[4]),stringsAsFactors=FALSE,row.names=1)
-mdata2<-mdata2[1:NofSamples,] #remove SE values
-colnames(mdata2)<-c("A","T","C","G")
-
-syn_trans<-cbind(mdata1,mdata2)
-syn_transm<-melt(syn_trans)
-syn_transm<-syn_transm[!(is.na(syn_transm$value)),]
 
 
-MFplot1<-ggplot(syn_transm,aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.5)+labs(x="Nucleotide",y="Mutation frequency")+
-        scale_fill_manual(values=c("#66CCEE","#228833","#66CCEE99","#22883399","#CCBB44CC","#EE6677CC")) + theme_classic()+
-        guides(fill=FALSE) +theme(axis.text.x = element_text(size =10))+
-        theme(axis.text.y = element_text(size =10))+
-        ggtitle("CpG vs. nonCpG synonymous mutations") + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
-        theme(plot.title = element_text(hjust = 0.5))+
-        geom_vline(xintercept = 2.5)
-
-ggsave(filename="Output/MutFreq/Fig.maj/CpGvsNonCpGSynTs.pdf",width=6.3, height=5, units='in',device='pdf', plot=MFplot1)
-
-#non-syn mutations
-mdata1<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[1]),stringsAsFactors=FALSE,row.names=1)
-mdata1<-mdata1[1:NofSamples,1:2] #remove SE values
-colnames(mdata1)<-c("A(CpG)","T(CpG)")
-#read nonCpg-syn data
-mdata2<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[3]),stringsAsFactors=FALSE,row.names=1)
-mdata2<-mdata2[1:NofSamples,] #remove SE values
-colnames(mdata2)<-c("A","T","C","G")
-
-nsyn_trans<-cbind(mdata1,mdata2)
-nsyn_transm<-melt(syn_trans)
-nsyn_transm<-syn_transm[!(is.na(syn_transm$value)),]
-
-MFplot2<-ggplot(nsyn_transm,aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.5)+labs(x="Nucleotide",y="Mutation frequency")+
-        scale_fill_manual(values=c("#66CCEE","#228833","#66CCEE99","#22883399","#CCBB44CC","#EE6677CC")) + theme_classic()+
-        guides(fill=FALSE) +theme(axis.text.x = element_text(size =10))+
-        theme(axis.text.y = element_text(size =10))+
-        ggtitle("CpG vs. nonCpG nonsynonymous mutations") + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
-        theme(plot.title = element_text(hjust = 0.5))+
-        geom_vline(xintercept = 2.5)
-
-ggsave(filename="Output/MutFreq/Fig.maj/CpGvsNonCpG_NonSynTs.pdf",width=6.3, height=5, units='in',device='pdf', plot=MFplot2)
-
-
-     
 #################
 #Plot summary of 2) Transversion mutations         
-Tv1Files<-list.files("Output/MutFreq/maj/",pattern="Transversion_1")
-Tv2Files<-list.files("Output/MutFreq/maj/",pattern="Transversion_2")
+Tv1Files<-list.files("Output1A/MutFreq/Maj/",pattern="Transversion_1")
+Tv2Files<-list.files("Output1A/MutFreq/Maj/",pattern="Transversion_2")
 
 #CpGmaking Transversion plots
 for (i in 1:2){
-        mdata1<-read.csv(paste0("Output/MutFreq/maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
-        mdata2<-read.csv(paste0("Output/MutFreq/maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata1<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata2<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
         mdata1<-mdata1[1:NofSamples,]
         mdata2<-mdata2[1:NofSamples,]
         mdata<-cbind(mdata1[,c(1,4)],mdata2[,c(2,3)])
@@ -183,15 +137,15 @@ for (i in 1:2){
                 theme(axis.text.y = element_text(size =10))+
                 ggtitle(paste0("Ave. freq of ",filename," mutation")) + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
                 theme(plot.title = element_text(hjust = 0.5))
-        ggsave(filename=paste0("Output/MutFreq/Fig.maj/",filename,".pdf"),width=9, height=7, units='in',device='pdf',plot=MFplot)
+        ggsave(filename=paste0("Output1A/MutFreq/Maj/",filename,".pdf"),width=9, height=7, units='in',device='pdf',plot=MFplot)
         
         #dev.off()
 }
 
 #non-CpGmaking Transversion plots
 for (i in c(3,4,5,7)){
-        mdata1<-read.csv(paste0("Output/MutFreq/maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
-        mdata2<-read.csv(paste0("Output/MutFreq/maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata1<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata2<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
         mdata1<-mdata1[1:NofSamples,]
         mdata2<-mdata2[1:NofSamples,]
         mdata<-mdata1+mdata2
@@ -206,7 +160,7 @@ for (i in c(3,4,5,7)){
                 theme(axis.text.y = element_text(size =10))+
                 ggtitle(paste0("Ave. freq of ",filename," mutation")) + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
                 theme(plot.title = element_text(hjust = 0.5))
-        ggsave(filename=paste0("Output/MutFreq/Fig.maj/",filename,".pdf"),width=9, height=7, units='in',plot=MFplot)
+        ggsave(filename=paste0("Output1A/MutFreq/Maj/",filename,".pdf"),width=9, height=7, units='in',plot=MFplot)
         
         
 }        
@@ -214,80 +168,54 @@ for (i in c(3,4,5,7)){
 ####################
 ### #compare CpG creating vs. non-CpGcreating Plot A vs A, G vs G etc.
 
-#CpG-syn vs. nonCpG-syn transversion data
-mdata1<-read.csv(paste0("Output/MutFreq/maj/",Tv1Files[2]),stringsAsFactors=FALSE,row.names=1)
-mdata2<-read.csv(paste0("Output/MutFreq/maj/",Tv2Files[2]),stringsAsFactors=FALSE,row.names=1)
-mdata1<-mdata1[1:NofSamples,]
-mdata2<-mdata2[1:NofSamples,]
-cpg1<-cbind(mdata1[,c(1,4)],mdata2[,c(2,3)])
-cpg1<-cpg1[,c(1,3,4,2)]
-colnames(cpg1)<-c("A(CpG)","T(CpG)","C(CpG)","G(CpG)")
 
+for (i in 1:2){
+        if (i==1) type<-"nonsynonymous"
+        if (i==2) type<-"synonymous"
 
-mdata1.2<-read.csv(paste0("Output/MutFreq/maj/",Tv1Files[4]),stringsAsFactors=FALSE,row.names=1)
-mdata2.2<-read.csv(paste0("Output/MutFreq/maj/",Tv2Files[4]),stringsAsFactors=FALSE,row.names=1)
-mdata1.2<-mdata1.2[1:NofSamples,]
-mdata2.2<-mdata2.2[1:NofSamples,]
-noncpg1<-cbind(mdata1.2[,c(1,4)],mdata2.2[,c(2,3)])
-noncpg1<-noncpg1[,c(1,3,4,2)]
-colnames(noncpg1)<-c("A","T","C","G")
+        #CpG-syn vs. nonCpG-syn transversion data
+        mdata1<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata2<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
+        mdata1<-mdata1[1:NofSamples,]
+        mdata2<-mdata2[1:NofSamples,]
+        cpg1<-cbind(mdata1[,c(1,4)],mdata2[,c(2,3)])
+        cpg1<-cpg1[,c(1,3,4,2)]
+        colnames(cpg1)<-c("A(CpG)","T(CpG)","C(CpG)","G(CpG)")
 
-cpgTv<-cbind(cpg1, noncpg1)
-dat1<-melt(cpgTv)
+        mdata2.2<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv2Files[i+2]),stringsAsFactors=FALSE,row.names=1)
+        mdata1.2<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv1Files[i+2]),stringsAsFactors=FALSE,row.names=1)
+        mdata1.2<-mdata1.2[1:NofSamples,]
+        mdata2.2<-mdata2.2[1:NofSamples,]
+        noncpg1<-cbind(mdata1.2[,c(1,4)],mdata2.2[,c(2,3)])
+        noncpg1<-noncpg1[,c(1,3,4,2)]
+        colnames(noncpg1)<-c("A","T","C","G")
 
-MFplot3<-ggplot(dat1,aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.5)+labs(x="Nucleotide",y="Mutation frequency")+
-        scale_fill_manual(values=c("#66CCEE","#228833","#CCBB44CC","#EE6677CC","#66CCEE99","#22883399","#CCBB44CC","#EE6677CC")) + theme_classic()+
-        guides(fill=FALSE) +theme(axis.text.x = element_text(size =10))+
-        theme(axis.text.y = element_text(size =10))+
-        ggtitle("CpG vs. nonCpG synonymous transversion") + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
-        theme(plot.title = element_text(hjust = 0.5))+
-        geom_vline(xintercept = 4.5)
+        cpgTv<-cbind(cpg1, noncpg1)
+        dat1<-melt(cpgTv)
 
-ggsave(filename="Output/MutFreq/Fig.maj/CpGvsNonCpGSyn_Transv.pdf",width=6.3, height=5, units='in',device='pdf', plot=MFplot3)
+        MFplot3<-ggplot(dat1,aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.5)+labs(x="Nucleotide",y="Mutation frequency")+
+                scale_fill_manual(values=c("#66CCEE","#228833","#CCBB44CC","#EE6677CC","#66CCEE99","#22883399","#CCBB44CC","#EE6677CC"))+
+                theme_classic()+
+                guides(fill=FALSE) +theme(axis.text.x = element_text(size =10))+
+                theme(axis.text.y = element_text(size =10))+
+                ggtitle(paste0("CpG vs. nonCpG ",type, " transversion")) + 
+                theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
+                theme(plot.title = element_text(hjust = 0.5))+
+                geom_vline(xintercept = 4.5)
 
-#### non-syn mutations
-#CpG-nonsyn vs. nonCpG-nonsyn transversion data
-mdata1<-read.csv(paste0("Output/MutFreq/maj/",Tv1Files[1]),stringsAsFactors=FALSE,row.names=1)
-mdata2<-read.csv(paste0("Output/MutFreq/maj/",Tv2Files[1]),stringsAsFactors=FALSE,row.names=1)
-mdata1<-mdata1[1:NofSamples,]
-mdata2<-mdata2[1:NofSamples,]
-cpg1<-cbind(mdata1[,c(1,4)],mdata2[,c(2,3)])
-cpg1<-cpg1[,c(1,3,4,2)]
-colnames(cpg1)<-c("A(CpG)","T(CpG)","C(CpG)","G(CpG)")
-
-
-mdata1.2<-read.csv(paste0("Output/MutFreq/maj/",Tv1Files[3]),stringsAsFactors=FALSE,row.names=1)
-mdata2.2<-read.csv(paste0("Output/MutFreq/maj/",Tv2Files[3]),stringsAsFactors=FALSE,row.names=1)
-mdata1.2<-mdata1.2[1:NofSamples,]
-mdata2.2<-mdata2.2[1:NofSamples,]
-noncpg1<-cbind(mdata1.2[,c(1,4)],mdata2.2[,c(2,3)])
-noncpg1<-noncpg1[,c(1,3,4,2)]
-colnames(noncpg1)<-c("A","T","C","G")
-
-cpgTv<-cbind(cpg1, noncpg1)
-dat1<-melt(cpgTv)
-
-MFplot4<-ggplot(dat1,aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.5)+labs(x="Nucleotide",y="Mutation frequency")+
-        scale_fill_manual(values=c("#66CCEE","#228833","#CCBB44CC","#EE6677CC","#66CCEE99","#22883399","#CCBB44CC","#EE6677CC")) + theme_classic()+
-        guides(fill=FALSE) +theme(axis.text.x = element_text(size =10))+
-        theme(axis.text.y = element_text(size =10))+
-        ggtitle("CpG vs. nonCpG nonsyn transversion") + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
-        theme(plot.title = element_text(hjust = 0.5))+
-        geom_vline(xintercept = 4.5)
-
-ggsave(filename="Output/MutFreq/Fig.maj/CpGvsNonCpGNonSyn_Transv.pdf",width=6.3, height=5, units='in',device='pdf', plot=MFplot4)
-
+        ggsave(filename=paste0("Output1A/MutFreq/Maj/CpGvsNonCpG.",type, ".Transv.pdf"),width=6.3, height=5, units='in',device='pdf', plot=MFplot3)
+}
 
 
 #####
 #Average all bases and plot together
-TransFiles<-list.files("Output/MutFreq/maj/",pattern="Transition.csv")
-TransFiles<-TransFiles[-6]
+#TransFiles<-list.files("Output1A/MutFreq/Maj/",pattern="Transition.csv")
+#TransFiles<-TransFiles[-6]
 
 datalist<-list()
 for (i in 1:length(TransFiles)){
         if (i==1|i==2|i==3|i==4){
-                mdata<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
+                mdata<-read.csv(paste0("Output1A/MutFreq/Maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
                 mdata<-mdata[1:NofSamples,1:2]  #use A and T only for nonCpGmaking mutations
                 dat<-melt(mdata)
                 dat<-dat[!(is.na(dat$value)),]
@@ -298,7 +226,7 @@ for (i in 1:length(TransFiles)){
                 if (i==4) dat$variable<-c(rep("Syn_nonCpG", n=length(dat$variable)))
                 }
         if (i==5|i==6){
-                mdata<-read.csv(paste0("Output/MutFreq/maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
+                mdata<-read.csv(paste0("Output1A/MutFreq/Maj/",TransFiles[i]),stringsAsFactors=FALSE,row.names=1)
                 mdata<-mdata[1:NofSamples,]
                 dat<-melt(mdata)
                 dat<-dat[!(is.na(dat$value)),]
@@ -316,26 +244,23 @@ MFplot<-ggplot(Transitions,aes(x=variable,y=value,fill=variable))+geom_boxplot(a
         theme(axis.text.y = element_text(size =10))+
         ggtitle(paste0(title)) + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
         theme(plot.title = element_text(hjust = 0.5))
-ggsave(filename=paste0("Output/MutFreq/Fig.maj/",title,"_Summary(A,T only).pdf"),width=9, height=7, units='in',plot=MFplot)
+ggsave(filename=paste0("Output1A/MutFreq/Maj/",title,"_Summary(A,T only).pdf"),width=9, height=7, units='in',plot=MFplot)
 
 
 
 
-####
+####Transversion
 
-
-Tv1Files<-list.files("Output/MutFreq/maj/",pattern="Transversion_1.csv")
-Tv2Files<-list.files("Output/MutFreq/maj/",pattern="Transversion_2.csv")
+#Tv1Files<-list.files("Output/MutFreq/maj/",pattern="Transversion_1.csv")
+#Tv2Files<-list.files("Output/MutFreq/maj/",pattern="Transversion_2.csv")
 Tv1Files<-Tv1Files[-6]
 Tv2Files<-Tv2Files[-6]
-#CpGmaking Transversion plots
-
 
 datalist.tv<-list()
 for (i in 1:length(Tv1Files)){
         if (i==1|i==2){
-                mdata1<-read.csv(paste0("Output/MutFreq/maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
-                mdata2<-read.csv(paste0("Output/MutFreq/maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
+                mdata1<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
+                mdata2<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
                 mdata1<-mdata1[1:NofSamples,]
                 mdata2<-mdata2[1:NofSamples,]
                 mdata<-cbind(mdata1[,c(1,4)],mdata2[,c(2,3)])
@@ -345,8 +270,8 @@ for (i in 1:length(Tv1Files)){
         }
         
         else {
-                mdata1<-read.csv(paste0("Output/MutFreq/maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
-                mdata2<-read.csv(paste0("Output/MutFreq/maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
+                mdata1<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv1Files[i]),stringsAsFactors=FALSE,row.names=1)
+                mdata2<-read.csv(paste0("Output1A/MutFreq/Maj/",Tv2Files[i]),stringsAsFactors=FALSE,row.names=1)
                 mdata1<-mdata1[1:NofSamples,]
                 mdata2<-mdata2[1:NofSamples,]
                 mdata<-mdata1+mdata2
@@ -361,13 +286,14 @@ for (i in 1:length(Tv1Files)){
 
 Transvs<-do.call(rbind,datalist.tv)        
 title<-"Transversion Mutations"
+colors<-rep(c("#66CCEECC","#228833CC","#CCBB44CC","#EE6677CC"), times=2)
 MFplot2<-ggplot(Transvs,aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.5)+labs(x="Mutation Type",y="Mutation frequency")+
         scale_fill_manual(values=c("#66CCEECC","#228833CC","#CCBB44CC","#EE6677CC","#AA3377CC","#4477AACC")) + theme_classic()+
         guides(fill=FALSE) +theme(axis.text.x = element_text(size =10))+
         theme(axis.text.y = element_text(size =10))+
         ggtitle(paste0(title)) + theme(plot.title = element_text(lineheight=3, face="bold", color="black", size=13))+
         theme(plot.title = element_text(hjust = 0.5))
-ggsave(filename=paste0("Output/MutFreq/Fig.maj/",title,"_Summary.pdf"),width=9, height=7, units='in',plot=MFplot2)
+ggsave(filename=paste0("Output1A/MutFreq/Maj/",title,"_Summary.pdf"),width=9, height=7, units='in',plot=MFplot2)
 
 
 ##################################
@@ -376,7 +302,7 @@ ggsave(filename=paste0("Output/MutFreq/Fig.maj/",title,"_Summary.pdf"),width=9, 
 #Plot with Median
 datanames<-c("A_syn","T_syn","C_syn","G_syn","A_nonsyn","T_nonsyn","C_nonsyn","G_nonsyn")
 colors<-c("#66CCEECC", "#228833CC" ,"#CCBB44CC", "#EE6677CC","#66CCEECC", "#228833CC", "#CCBB44CC", "#EE6677CC")
-filename<-paste0("Output/MutFreq/Fig.maj/Transition_Mut_Freq_Histograms_median.pdf")
+filename<-paste0("Output1A/MutFreq/Maj/Transition_Mut_Freq_Histograms_median.pdf")
 pdf(filename, width = 12, height = 7)
 par(mfrow=c(2,4))
 par(mar = c(4,4.3,2.5,1))
@@ -402,7 +328,7 @@ dev.off()
 #Same plot with Mean
 datanames<-c("A_syn","T_syn","C_syn","G_syn","A_nonsyn","T_nonsyn","C_nonsyn","G_nonsyn")
 colors<-c("#66CCEECC", "#228833CC" ,"#CCBB44CC", "#EE6677CC","#66CCEECC", "#228833CC", "#CCBB44CC", "#EE6677CC")
-filename<-paste0("Output/MutFreq/Fig.maj/Transition_Mut_Freq_Histograms_mean.pdf")
+filename<-paste0("Output1A/MutFreq/Maj/Transition_Mut_Freq_Histograms_mean.pdf")
 pdf(filename, width = 12, height = 7)
 par(mfrow=c(2,4))
 par(mar = c(4,4.3,2.5,1))
@@ -431,7 +357,7 @@ datanames2<-c("A_tv2_syn","T_tv2_syn","C_tv2_syn","G_tv2_syn","A_tv2_nonsyn","T_
 
 
 
-filename<-paste0("Output/MutFreq/Fig.maj/Tranversion_Mut_Freq_Histograms_mean.pdf")
+filename<-paste0("Output1A/MutFreq/Maj/Tranversion_Mut_Freq_Histograms_mean.pdf")
 pdf(filename, width = 12, height = 7)
 par(mfrow=c(2,4))
 par(mar = c(4,4.3,2.5,1))
@@ -456,7 +382,7 @@ for (i in 1:8){
 
 dev.off()
 
-filename<-paste0("Output/MutFreq/Fig.maj/Tranversion_Mut_Freq_Histograms_median.pdf")
+filename<-paste0("Output1A/MutFreq/Maj/Tranversion_Mut_Freq_Histograms_median.pdf")
 pdf(filename, width = 12, height = 7)
 par(mfrow=c(2,4))
 par(mar = c(4,4.3,2.5,1))
@@ -478,169 +404,6 @@ for (i in 1:8){
         mtext(text = "Transversion Mutation Frequency", side = 1, line = 1.5, cex=0.9)
 }
 dev.off()
-
-
-
-#####SeparateFigures for Individual Samples ################## 
-#cols <- c("#66CCEE","#228833","#CCBB44","#EE6677","#AA3377","#4477AA","#BBBBBB")
-##############
-# Make frequncy figures (like SelCoeff)  
-
-#Transistion mutation frequency figures
-breaks=seq(-6,0,by=.2)
-
-for (i in 1:length(Overview_summary)){
-        OverviewData<-Overview_summary[[i]]
-        filename<-paste0("Output/MutFreq/maj/",names(Overview_summary)[i],"-MutFreq..pdf")
-        pdf(filename, width = 12, height = 7)
-        par(mfcol=c(2,4))
-        par(mar = c(4,4.3,2.5,1))
-        
-        for (typeofsite in c("syn", "nonsyn")){
-                dat<-OverviewData
-                
-                k=1
-                mycol <- rgb(190, 190, 190, max = 255, alpha = 100, names = "grey50")
-                for (wtnt in c("a", "t", "c", "g")){
-                        datavector<- dat$freq.maj[dat$Type==typeofsite & dat$MajNt==wtnt]
-                        datavector<-na.omit(datavector)
-                        
-                        hist(log10(datavector), breaks = breaks, xlim=c(-5,-0),col=cols[k], 
-                             main = paste0(wtnt, " : ", typeofsite), ylab="Count", xlab="",
-                             xaxt="n", cex.main=1.7, las=1, cex.axis =1.2,cex.lab=1.6)
-                        
-                        #datavectorNonCpG<- dat$EstSelCoeff[dat$Type==typeofsite & dat$MajNt==wtnt & dat$makesCpG==0]
-                        #datavectorNonCpG<-as.numeric(datavector)
-                        #datavectorNonCpG<-na.omit(datavector)
-                        #if (k<0) 
-                        
-                        #hist(log10(datavectorNonCpG), breaks = breaks, xlim=c(-5,-0),col=mycol, 
-                        #       main = paste0(wtnt, " : ", typeofsite), ylab="Count", xlab="",xaxt="n",add=TRUE)
-                        ##This last line highlights the effect of CpG creating mutations, but I didn't use it. 
-                        abline(v=median(log10(datavector), na.rm = TRUE),col="white",lwd=2,lty=1)
-                        abline(v=median(log10(datavector), na.rm = TRUE),lwd=2,lty=2)
-                        
-                        x=seq(-5,0,by=1)
-                        labels <- sapply(x,function(i)
-                                as.expression(bquote(10^ .(i)))
-                        )
-                        axis(1, at=x,labels=labels, col.axis="black", line=-.7, cex.axis=1)
-                        mtext(text = "Transition Mutation Frequency", side = 1, line = 1.5, cex=.9)
-                        
-                        k=k+1
-                }
-        }
-        dev.off()
-        
-}
-
-
-
-## Overlay the CpG making mutation frequency distribution -> 
-cols2<-c("#66CCEE80" , "#22883380")
-
-for (i in 1:length(Overview_summary)){
-        OverviewData<-Overview_summary[[i]]
-        filename<-paste0("Output/MutFreq/",names(Overview_summary)[i],"_CpGMaking_MutFreq.pdf", sep = "")
-        pdf(filename, width = 9, height = 7)
-        par(mfcol=c(2,2))
-        par(mar = c(4,4.3,2.5,1))
-        
-        for (typeofsite in c("syn", "nonsyn")){
-                dat<-OverviewData
-                k=1
-                mycol <- rgb(190, 190, 190, max = 255, alpha = 100, names = "grey50")
-                for (wtnt in c("a", "t")){
-                        datavector<- dat$freq.maj[dat$Type==typeofsite & dat$MajNt==wtnt]
-                        datavector<-na.omit(datavector)
-                        
-                        datavectorCpG<- dat$freq.maj[dat$Type==typeofsite & dat$MajNt==wtnt & dat$makesCpG==1]
-                        datavectorCpG<-na.omit(datavectorCpG)
-                        
-                        hist(log10(datavector), breaks = breaks, xlim=c(-4,-0),col=cols2[k],
-                             main = paste0(wtnt, " : ", typeofsite), ylab="Count", xlab="",
-                             xaxt="n", cex.main=1.7, las=1, cex.axis =1.2,cex.lab=1.6)
-                        
-                        
-                        hist(log10(datavectorCpG), breaks = breaks, xlim=c(-4,-0),col='Gray10', angle=45,density=20,
-                             main = paste0(wtnt, " : ", typeofsite), ylab="Count", xlab="",xaxt="n",add=T)
-                        
-                        #hist(log10(datavector), breaks = breaks, xlim=c(-4,-0),col=cols2[k], 
-                        #main = paste0(wtnt, " : ", typeofsite), ylab="Count", xlab="",
-                        #xaxt="n", cex.main=1.7, las=1, cex.axis =1.2,cex.lab=1.6,boarder='gray',add=T)
-                        
-                        
-                        ##This last line highlights the effect of CpG creating mutations, but I didn't use it. 
-                        abline(v=median(log10(datavector), na.rm = TRUE),col="blue",lwd=1,lty=1)
-                        abline(v=median(log10(datavectorCpG), na.rm = TRUE),lwd=1,lty=1,col="red")
-                        
-                        x=seq(-4,0,by=1)
-                        labels <- sapply(x,function(i)
-                                as.expression(bquote(10^ .(i)))
-                        )
-                        axis(1, at=x,labels=labels, col.axis="black", line=-.5, cex.axis=1)
-                        mtext(text = "Selection Coefficient", side = 1, line = 1.8, cex=1.1)
-                        
-                        k=k+1
-                }
-        }
-        dev.off()
-        
-}
-
-
-## Plot CpGmaking vs. non-CpGmaking 
-for (i in 1:length(Overview_summary)){
-        OverviewData<-Overview_summary[[i]]
-        filename<-paste0("Output/MutFreq/CpG.vs.nonCpG_",names(Overview_summary)[i],".pdf", sep = "")
-        pdf(filename, width = 12, height = 7)
-        par(mfcol=c(2,4))
-        par(mar = c(4,4.3,2.5,1))
-        
-        for (typeofsite in c("syn", "nonsyn")){
-                dat<-OverviewData
-                #colnames(dat)[3]<-"TypeOfSite"
-                
-                
-                mycol <- rgb(190, 190, 190, max = 255, alpha = 100, names = "grey50")
-                for (wtnt in c("a", "t")){
-                        datavectorNonCpG<- dat$freq.maj[dat$Type==typeofsite & dat$MajNt==wtnt & dat$makesCpG==0]
-                        datavectorNonCpG<-na.omit(datavectorNonCpG)
-                        
-                        hist(log10(datavectorNonCpG), breaks = breaks, xlim=c(-5,-0),col=c("pink"),
-                             main = paste0(wtnt, " : ", typeofsite,"-nonCpG"), ylab="Count", xlab="",xaxt="n")
-                        ##This last line highlights the effect of CpG creating mutations, but I didn't use it. 
-                        abline(v=median(log10(datavectorNonCpG), na.rm = TRUE),col="white",lwd=2,lty=1)
-                        abline(v=median(log10(datavectorNonCpG), na.rm = TRUE),lwd=2,lty=2)
-                        
-                        x=seq(-5,0,by=1)
-                        labels <- sapply(x,function(i)
-                                as.expression(bquote(10^ .(i)))
-                        )
-                        axis(1, at=x,labels=labels, col.axis="black", line=-.5,  las=1,cex.axis=1)
-                        mtext(text = "Mutation Frequency", side = 1, line = 1.8, cex=.8)
-                        
-                        
-                        datavectorCpG<- dat$freq.maj[dat$Type==typeofsite & dat$MajNt==wtnt & dat$makesCpG==1]
-                        datavectorCpG<-na.omit(datavectorCpG)
-                        
-                        
-                        hist(log10(datavectorCpG), breaks = breaks, xlim=c(-5,-0),col='gray',
-                             main = paste0(wtnt, " : ", typeofsite,'-CpG'), ylab="Count", xlab="",xaxt="n")
-                        ##This last line highlights the effect of CpG creating mutations, but I didn't use it. 
-                        abline(v=median(log10(datavectorCpG), na.rm = TRUE),col="white",lwd=2,lty=1)
-                        abline(v=median(log10(datavectorCpG), na.rm = TRUE),lwd=2,lty=2)
-                        #text(v+.2,)
-                        
-                        axis(1, at=x,labels=labels, col.axis="black", las=1, line=-.5, cex.axis=1)
-                        mtext(text = "Mutation Frequency", side = 1, line = 1.8, cex=.8)
-                        
-                        
-                }
-        }
-        dev.off()
-}
-
 
 
 

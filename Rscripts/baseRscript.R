@@ -15,7 +15,7 @@ library(RColorBrewer)
 
 #* Transition function*
 transition<-function(nuc){
-    if (is.na(nuc)){ 
+    if (is.na(nuc)|nuc=="-"){ 
                 return (NA)
                 next}
     else if (nuc=="a") return("g")

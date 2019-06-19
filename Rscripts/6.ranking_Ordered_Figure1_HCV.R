@@ -1,15 +1,15 @@
-#Read in the data file and convert the first col to rownames
-library(dplyr)
+# Create the ranking ordered figures for each patient using Maj Data.
 
+library(dplyr)
 source("Rscripts/baseRscript.R")
 
 
-# read the files saved in Overview_output:
-HCVFiles<-list.files("Output/Overview_output/",pattern="overview.csv")
+# read the files saved in Overview2:
+HCVFiles<-list.files("Output1A/Overview1/",pattern="overview.csv")
 
 Overview_summary<-list()
 for (i in 1:length(HCVFiles)){ 
-        overviews<-read.csv(paste0("Output/Overview_output/",HCVFiles[i]),stringsAsFactors=FALSE)
+        overviews<-read.csv(paste0("Output1A/Overview1/",HCVFiles[i]),stringsAsFactors=FALSE)
         overviews<-overviews[,-1]
         Overview_summary[[i]]<-overviews
         names(Overview_summary)[i]<-substr(paste(HCVFiles[i]),start=1,stop=7)
@@ -57,9 +57,10 @@ plotter <- function(d){
 # create figures for transition mutations
 for (i in 1:length(Overview_summary)){
         OverviewData<-Overview_summary[[i]]
+        OverviewData<-OverviewData[OverviewData$pos>=342,]
         colnames(OverviewData)[colnames(OverviewData)=="Type"]<-"TypeOfSite"
-        colnames(OverviewData)[colnames(OverviewData)=="freq.maj"]<-"Freq"
-        pdf(paste0("Output/Fig.1/MutFreq-ordered-", names(Overview_summary)[i], ".pdf"), height = 6, width = 9)
+        colnames(OverviewData)[colnames(OverviewData)=="freq.Ts"]<-"Freq"
+        pdf(paste0("Output1A/Fig.1/MutFreq-ordered-", names(Overview_summary)[i], ".pdf"), height = 6, width = 9)
         plotter(OverviewData)
         dev.off() 
 }        
@@ -70,8 +71,8 @@ for (i in 1:length(Overview_summary)){
 for (i in 1:length(Overview_summary)){
         OverviewData<-Overview_summary[[i]]
         colnames(OverviewData)[colnames(OverviewData)=="Type.tv1"]<-"TypeOfSite"
-        colnames(OverviewData)[colnames(OverviewData)=="freq.transv.1"]<-"Freq"
-        pdf(paste0("Output/Fig.1/MutFreq-ordered-Transv1_", names(Overview_summary)[i], ".pdf"), height = 6, width = 9)
+        colnames(OverviewData)[colnames(OverviewData)=="freq.transv1"]<-"Freq"
+        pdf(paste0("Output1A/Fig.1/MutFreq-ordered-Transv1_", names(Overview_summary)[i], ".pdf"), height = 6, width = 9)
         plotter(OverviewData)
         dev.off() 
 }  
@@ -81,7 +82,7 @@ for (i in 1:length(Overview_summary)){
         OverviewData<-Overview_summary[[i]]
         colnames(OverviewData)[colnames(OverviewData)=="Type.tv2"]<-"TypeOfSite"
         colnames(OverviewData)[colnames(OverviewData)=="freq.transv.2"]<-"Freq"
-        pdf(paste0("Output/Fig.1/MutFreq-ordered-Transv2_", names(Overview_summary)[i], ".pdf"), height = 6, width = 9)
+        pdf(paste0("Output1A/Fig.1/MutFreq-ordered-Transv2_", names(Overview_summary)[i], ".pdf"), height = 6, width = 9)
         plotter(OverviewData)
         dev.off() 
 }
@@ -131,6 +132,7 @@ plotter.Tvs <- function(d){
 
 for (i in 1:length(Overview_summary)){
         OverviewData<-Overview_summary[[i]]
+        OverviewData$TypeOfSite<-NA
         for (j in 1:nrow(OverviewData)){ 
                 if (is.na(OverviewData$Type.tv1[j])|is.na(OverviewData$Type.tv2[j])) next
                 else {if (OverviewData$Type.tv1[j] == OverviewData$Type.tv2[j])  OverviewData$TypeOfSite[j]<-OverviewData$Type.tv1[j]
@@ -138,11 +140,19 @@ for (i in 1:length(Overview_summary)){
         }        
         colnames(OverviewData)[colnames(OverviewData)=="freq.transv"]<-"Freq"
         
-        pdf(paste0("Output/Fig.1/MutFreq-ordered-Transv_", names(Overview_summary)[i], ".pdf"), height = 6, width = 9)
+        pdf(paste0("Output1A/Fig.1/MutFreq-ordered-Transv_", names(Overview_summary)[i], ".pdf"), height = 6, width = 9)
         plotter.Tvs(OverviewData)
         dev.off() 
 }
 
+######
+## 
+mutfreq<-data.frame(id=names(Overview_summary))
+for (i in 1:length(Overview_summary)){
+        OverviewData<-Overview_summary[[i]]
+        mutfreq$freqT[i]<-mean(OverviewData$freq.Ts, na.rm=T)
+        mutfreq$reads[i]<-mean(OverviewData$TotalReads,na.rm=T)
+}
 
-
-
+plot(mutfreq$freqT)
+plot(mutfreq$reads)

@@ -3,7 +3,7 @@ library(dplyr)
 source("Rscripts/baseRscript.R")
 
 #Specify the Genotype
-geno<-"3A"
+geno<-"1B"
 
 
 
@@ -26,7 +26,7 @@ for (i in 1:length(HCVFiles_SeqData)){
         for (codon in 1:(nrow(OverviewDF)/3)) {#for each codon in the sequence
                 positions <- c(codon*3-2,codon*3-1, codon*3)
                 WTcodon <- OverviewDF$ref[positions]
-                Majcodon<-OverviewDF$MajNt[positions]
+                Majcodon<- OverviewDF$MajNt[positions]
                 if (is.na(Majcodon[1])|is.na(Majcodon[2])|is.na(Majcodon[3])){ 
                         WTcodon<-c('n','n','n')
                         Majcodon<-c('n','n','n')

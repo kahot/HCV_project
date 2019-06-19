@@ -1,4 +1,4 @@
-#make AA transition figure
+#make AA transition figure for each sample
 #Just NS
 source("Rscripts/baseRscript.R")
 
@@ -13,11 +13,11 @@ computeColInds <- function(wtnt){
 
 
 #Read the overview files as a list
-HCVFiles_overview<-list.files("Overview_output/",pattern="-overview.csv")
+HCVFiles_overview<-list.files("Output1A/Overview1/",pattern="-overview.csv")
 
 Overview_summary<-list()
 for (i in 1:length(HCVFiles_overview)){ 
-        overviews<-read.csv(paste0("Overview_output/",HCVFiles_overview[i]),stringsAsFactors=FALSE)
+        overviews<-read.csv(paste0("Outpu1A/Overview1/",HCVFiles_overview[i]),stringsAsFactors=FALSE)
         overviews<-overviews[,-1]
         Overview_summary[[i]]<-overviews
         names(Overview_summary)[i]<-substr(paste(HCVFiles_overview[i]),start=1,stop=7)
@@ -46,7 +46,7 @@ for (h in 1:length(HCVFiles)){
         pchs <- c(16, 17)
         ylimval <- -4
        
-        pdf(paste0("Output/AAchanges/AAchangesNS_.pdf",id,".pdf"), height = 5, width = 9)
+        pdf(paste0("Output1A/AAchanges/AAchangesNS_.pdf",id,".pdf"), height = 5, width = 9)
         par(mar = c(5, 4, 1, 5))
         
         plot(0, type = "n", xlim = c(1, nrow(allComps)), ylim = c(ylimval, 0), axes = FALSE, ylab = "Estimated Selection Coefficient (cost)", xlab = "Mutation")

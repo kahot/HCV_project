@@ -1,26 +1,25 @@
+library(ggplot2)
+library(miscTools)
+library(tidyverse)
+library(janitor)
+library(reshape2)
+
+
+cols2<-c("#66CCEE","#EE6677" ,"#228833")
 ####
-HCVFiles_overview3<-list.files("Output/Overview_filtered/",pattern="overview3.csv")
-FilteredOverview<-list()
-for (i in 1:length(HCVFiles_overview3)){ 
-        overviews<-read.csv(paste0("Output/Overview_filtered/",HCVFiles_overview3[i]),stringsAsFactors=FALSE)
-        overviews<-overviews[,-1]
-        FilteredOverview[[i]]<-overviews
-        names(FilteredOverview)[i]<-substr(paste(HCVFiles_overview3[i]),start=1,stop=7)
-}
+HCVFiles_overview3<-list.files("Output1A/Overview3/",pattern="overview3.csv")
 
-############
-
-data<-read.csv("Output/GLM/GlmdataFull.Ts.Q35.csv")
+data<-read.csv("Output1A/GLM/GlmdataFull.Ts.Q35.csv")
 data<-data[,-1]
-s<-length(FilteredOverview)
+s<-length(HCVFiles_overview3)
 
 
 # from 10.3_Filtered OveriewData_GLM.R
 #Read data file
-GlmData <-read.csv("Output/GLM/GlmdataFull.Ts.Q35.csv")
+GlmData <-read.csv("Output1A/GLM/GlmdataFull.Ts.Q35.csv")
 GlmData1<-GlmData[,-1]
 
-modcoef<-read.csv("Output/GLM/BetaReg_mod.g2_Ts.Q35.csv",stringsAsFactors = F)
+modcoef<-read.csv("Output1A/GLM/BetaReg_mod.g2_Ts.Q35.csv",stringsAsFactors = F)
 rownames(modcoef)<-modcoef$X
 modcoef<-modcoef[,-1]
 coef.vals <- modcoef[,1]
@@ -86,178 +85,216 @@ for (i in 1:nrow(data)){
 
 
 #visualize the results
-plot(data$mean[500:2000], pch=21, col="#66CCEE", cex=.5, ylab='mutation frequency')
-points(data$EstiamtedMF[500:2000],pch=21, col="blue",cex=0.5)
-legend('topright', legend=c('Ovserved', 'Estimated'), col=c("#66CCEE",'blue'), pch= 21,cex=.7)
+plot(data$mean[500:2000], pch=16, col="#66CCEE", cex=.5, xaxt='n', ylab='Mutation frequency',xlab='Genome position')
+points(data$EstiamtedMF[500:2000],pch=16, col="blue",cex=0.5)
+xticks<-seq(0,1500, by=500)
+axis(side=1, at=xticks,labels=seq(500,2000, by = 500))
+legend('topright', legend=c('Ovserved', 'Estimated'), col=c("#66CCEE",'blue'), pch= 16,cex=.7)
 
-plot(data$mean, pch=21, col="#66CCEE", cex=.5, ylab='mutation frequency')
-points(data$EstiamtedMF,pch=21, col="blue",cex=0.5)
+pdf("Output1A/GLM/Expected.vs.observed.mf.pdf", width=10, height = 6)
+plot(data$mean, pch=21, col="#66CCEE", cex=.3, ylab='Mutation frequency',xlab='Genome position')
+points(data$EstiamtedMF,pch=21, col="blue",cex=0.3)
 legend('topright', legend=c('Ovserved', 'Estimated'), col=c("#66CCEE",'blue'), pch= 21,cex=.7)
+dev.off()
+
 
 
 # find the differences betweeen [observed - estimated]
 data$diff<- data$mean-data$EstiamtedMF
-plot(data$diff,pch=21, col="#66CCEE", cex=.5, ylab="Difference between Obs & Est MF",xlab="genome position")
 
+pdf("Output1A/GLM/Expected.vs.observed.mf-Difference.pdf", width=10, height = 6)
+plot(data$diff,pch=21, col="#66CCEE", cex=.3, ylab="Difference between Obs & Est MF",xlab="Genome position")
+dev.off()
+
+#Find the sites that expected and ovserved MF differed > 0.008
 data$over0.008<-sapply(data$diff,function(x){ if (abs(x)>0.008) x=x
                             else x<-NA})
-plot(data$over0.008,pch=21, col="#66CCEE", cex=.5)
-
-data_all<-data
-data_s<-data[data$Stop==0,]
-mean(data_all$diff) #Most mutation frequency is lower than estiamted frequency. 
+plot(data$over0.008,pch=16, col="#66CCEE", cex=.5)
 
 
-# the differece is small, so focus on the lowest 5%
+
+#Average difference in Exp-Obs Mut Freq.
+
+MFdiff<-data.frame("Mutation Type"= c("Overall","Without Stop", "Stop", "Syn","Nonsyn"))
+MFdiff$Mean.diff<-c(mean(data$diff),mean(data$diff[data$Stop==0]),mean(data$diff[data$Stop==1]),mean(data$diff[data$Syn==1]),mean(data$diff[data$Nonsyn==1]))
+MFdiff$Mutation.Type<-factor(MFdiff$Mutation.Type, c("Overall","Without Stop", "Stop", "Syn","Nonsyn"))
+write.csv(MFdiff, "Output1A/GLM/Expected.vs.observed.mf-Difference.csv")
+
+ggplot(MFdiff,aes(x=Mutation.Type,y=Mean.diff))+
+        geom_bar(stat="identity", color="#EE6677",fill="#EE667766",width=0.8)+
+        theme_bw()+labs(x="Mutation type",y="Average difference between observed & expected MF")+
+        theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
+        geom_hline(yintercept=0, size=0.4, color="gray10")
+ggsave("Output1A/GLM/Mean.diff.Expected.vs.observed.pdf", width=6, height=5)
+
 
 #####  Look at the results by gene
-###
+genes<-read.csv("Data/HCV_annotations2.csv", stringsAsFactors = F)
 
 ByGenes<-list()
 for (i in 2:12){
         df<-data[data$gene==i,]
-        n=i-1
         ByGenes[[(i-1)]]<-df
         names(ByGenes)[(i-1)]<-paste0(genes$Gene[i])
 }
 
-pdf(file="Output/GLM/Compare_ObservedvsEstimatedMF.pdf", width=8,height=11.5)
+pdf(file="Output1A/GLM/Compare_ObservedvsEstimatedMF.pdf", width=8,height=11.5)
 par(mfrow = c(6,2),mar=c(2,2,1,1))
 for (i in 1:length(ByGenes)){
         df<-ByGenes[[i]]
-        plot(df$over0.008, pch=16, col="#EE6677", cex=.8, main = names(ByGenes)[i], xlab='Genome position', ylab= '[Observed - Estimated] mutation Frequency')  
+        plot(df$pos,df$over0.008, pch='', col=cols2[1], cex=.8, main = names(ByGenes)[i], xlab='Genome position', ylab= '(Observed - Estimated) mutation Frequency')  
+        points(df$pos[df$over0.008>0],df$over0.008[df$over0.008>0], pch=16, col=cols2[1], cex=.8)  
+        points(df$pos[df$over0.008<0],df$over0.008[df$over0.008<0], pch=16, col=cols2[2], cex=.8)  
+        abline(h=0, col="gray")
+}
+dev.off()
+
+
+#Find the sites with highly conserved (observed-expected to be bottom 5 %) 
+l<-nrow(data)
+data2<-head(data[order(data$diff, decreasing= F),], n=round(l*0.05))
+
+
+ByGenes2<-list()
+for (i in 2:12){
+        df<-data2[data2$gene==i,]
+        df<-df[(order(df$pos)),]
+        ByGenes2[[(i-1)]]<-df
+        names(ByGenes2)[(i-1)]<-paste0(genes$Gene[i])
+}
+
+pdf(file="Output1A/GLM/Compare_ObservedvsEstimatedMF.bottom5per.pdf", width=8,height=11.5)
+par(mfrow = c(6,2),mar=c(2,2,1,1))
+for (i in 1:length(ByGenes2)){
+        df<-ByGenes2[[i]]
+        plot(df$pos, df$diff, pch=16, col=cols2[2], cex=.8, main = names(ByGenes)[i], xlab='Genome position', ylab= '(Observed - Estimated) mutation Frequency')  
         abline(h=0, col="gray")
 }
 dev.off()
 
 
 
-pdf(file="Output/GLM/Compare_ObservedvsEstimatedMF_bottom10.pdf", width=8,height=11.5)
-par(mfrow = c(6,2),mar=c(2,2,1,1))
-for (i in 1:length(ByGenes)){
-        df<-ByGenes[[i]]
-        df<-df[df$Stop==0,]
-        df_bottom10<-head(df[order(df$diff, decreasing= F),], n=10)
-        plot(df_bottom10$pos,df_bottom10$diff, pch=16, col="#EE6677", cex=.8, main = names(ByGenes)[i], xlab='Genome position', ylab= '[Observed - Estimated] mutation Frequency')  
-}
-dev.off()
+
+
 
 
 #################
-#Attach the reference sequence info
-Transitions<-read.csv("Output/Mut.freq.filtered/Summary_Ts.Q35.csv")
-Transitions<-Transitions[,-1]
-data<-merge(data, Transitions[,1:2], by ="pos")
+#Attach the reference sequence/AA info
+Transitions<-read.csv("Output1A/Mut.freq.filtered/Summary_Ts.Q35.csv")
+data<-merge(data, Transitions[,c("pos","ref","WTAA")], by ="pos")
+#most conserved 5% sites (lower than expected mf sites)
+data2<-head(data[order(data$diff, decreasing= F),], n=round(l*0.05))
+
+#which nucleotides are over/under- represented in the conserved sites.
+Sum<-list()
+    Sum[[1]]<-table(data2$ref)
+    Sum[[2]]<-table(data$ref)
+    Sum[[3]]<-Sum[[1]]/sum(Sum[[1]])
+    Sum[[4]]<-Sum[[2]]/sum(Sum[[2]])
+    Sum[[5]]<-Sum[[3]]-Sum[[4]]
+NT<-as.data.frame(Sum[[5]]/Sum[[4]]*100)
 
 
-#Select only the highly deviated sites
-data2<-data[!is.na(data$over0.008),]#151 sites
-table(data2$ref) 
-# a  c  g  t 
-#28 64 24 35  
-
-
-#Sites with higher than expected mutation freq
-df3<-data2[(!is.na(data2$over0.008)& data2$over0.008>0),] #137
-#Sites with lower than expected mutation freq
-df4<-data2[(!is.na(data2$over0.008)& data2$over0.008<0),] #14
-
-table(df3$ref)
-s#a  c  g  t 
-#25 64 24 24 
-
-table(df4$ref)
-#a   c   g   t 
-# 3  0  0 11 
-
-## how many of the lower than expected sites are CpG creating sits?
-table(df4$CpG)
-#0   1 
-#11  3
-
-table(df3$CpG)
-# 0  1 
-#124  13
-
-#CpG sites have lower mean frequency? -> No
-mean(df4$mean[df4$CpG==0])
-#[1] 0.004098213
-mean(df4$mean[df4$CpG==1])
-#[1] 0.004157806
-mean(df3$mean[df3$CpG==0])
-#[1] 0.01906609
-mean(df3$mean[df3$CpG==1])
-#[1] 0.01938992
-
-mean(data2$mean[data2$CpG==0]) #[1] 0.01784648
-mean(data2$mean[data2$CpG==1]) #[1] 0.0165339
+ggplot(NT,aes(x=Var1,y=Freq))+
+        geom_bar(stat="identity", color="#EE6677",fill="#EE667766",width=0.8)+
+        theme_bw()+labs(x="")+
+        theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
+        geom_hline(yintercept=0, size=0.4, color="gray10")+
+        scale_x_discrete(labels=c("A","C","G","T"))+
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),axis.title.y = element_text(size = 14))+
+        ylab(expression(paste("Over/under-represented nt (%) \n at conserved sites")))+
+        theme(plot.margin=unit(c(5,5,5,20),"points"))
+ggsave("Output1A/GLM/Overrepresented.Nucleotides.in.Bottom5per.pdf", width=5, height=4)
 
 
 
+table(data2$CpG, data2$ref)
+#      a   c   g   t
+#0  33 175  70  62
+#1  20   0   0  38
 
-###################
-genes<-read.csv("Data/HCV_annotations2.csv", stringsAsFactors = F)
-genes[6,1]<-"NS1(P7)"
-# Add the codon position info
+table(data2$codon)
 
-#proportion of deviated sites:
-PercentDeviates<-data.frame("Gene"= paste0(genes$Gene[2:12]), "Proportion"=rep('',times=11), stringsAsFactors = FALSE)
-ByGene2<-list()
+
+#proportion of over/under represented sites by gene:
+#Adjust the length of the last gene
+
+genes2<-genes[-13,]
+genes2$end[12]<-data$pos[nrow(data)]
+PercentDeviates<-data.frame("Gene"= paste0(genes$Gene[2:12]), "counts"=rep('',times=11), stringsAsFactors = FALSE)
+codonsummary<-data.frame("Gene"= paste0(genes$Gene[2:12]),"first"=rep(0,times=11),stringsAsFactors = FALSE)
+AAsummary<-list()
 for (i in 2:12){
         vec<-data.frame('pos'=c(genes$start[i]:((genes$end[i]-genes$start[i])+genes$start[i])))
-        df<-data[data$gene==i,]
+        df<-data2[data2$gene==i,]
         dfm<-merge(df, vec, by="pos", all.y=TRUE)
         dfm$codon<-rep(1:3, times=nrow(dfm)/3) 
+        #df<-dfm[!is.na(dfm$mean),]
+        PercentDeviates$counts[(i-1)]<-nrow(df)
+        PercentDeviates$length[i-1]<-nrow(dfm)
+        PercentDeviates$Proportion[(i-1)] <- ((nrow(df)/nrow(data2))/(nrow(dfm)/nrow(data))-1 )*100
+        codonsummary$first[i-1] <-sum(dfm$codon[!is.na(dfm$mean)& dfm$codon==1])
+        codonsummary$second[i-1]<-sum(dfm$codon[!is.na(dfm$mean)& dfm$codon==2])
+        codonsummary$third [i-1]<-sum(dfm$codon[!is.na(dfm$mean)& dfm$codon==3])
+        aa<-as.data.frame(table(df$WTAA))
+        AAsummary[[i-1]]<-aa
+        names(AAsummary)[i-1]<-genes$Gene[i]
         
-        dfm<-dfm[!is.na(dfm$mean),]
-        #filter to the most deviated sites (>0.008)
-        df2<-dfm[!is.na(dfm$over0.008),]
-        
-        PercentDeviates$Proportion[(i-1)] <- nrow(df2)/(nrow(dfm))*100
-        PercentDeviates$DevCounts[(i-1)]<-(nrow(df2))
-        PercentDeviates$Length[i-1]<-nrow(dfm)
-        PercentDeviates$higher[(i-1)]<-nrow(df2[df2$over0.008>0,])
-        PercentDeviates$lower[(i-1)]<-nrow(df2[df2$over0.008<0,])
-        
-        ByGene2[[i]]<-dfm
-        names(ByGene2)[[i]]<-paste0(genes$Gene[i])
 }
 
-write.csv(PercentDeviates, "Output/GLM/Observed.vs.Estimated.MuFreq.byGenes_noStop.csv")
+write.csv(PercentDeviates, "Output1A/GLM/Overrepresented.site.proportion.by.gene.csv")
 
-### Lookat the bottom 10 sites (lower than expected mutation frequency = conserved sites) -including the stop sites
-Summary<-data.frame("Gene"=genes$Gene[2:12], 'a'= rep(0, times=11), 't'= rep(0, times=11),'c'= rep(0, times=11),'g'= rep(0, times=11))
-for (i in 2:12){
-        dat<-ByGene2[[i]]
-        dat$ref<-as.character(dat$ref)
-        dat10<-head(dat[order(dat$diff, decreasing= F),], n=10)
-        k=i-1
-        Summary$max_diff[k]<-max(dat10$diff)
-        Summary$Nonsyn[k]<-nrow(dat10[dat10$Nonsyn==1,])
-        Summary$Stop[k]<-nrow(dat10[dat10$Stop==1,])
-        Summary$CpG[k]<-nrow(dat10[dat10$CpG==1,])
-        Summary$bigAAChange[k]<-nrow(dat10[dat10$bigAAChange==1,])
-        nt<-data.frame(table(dat10$ref),stringsAsFactors = F)
-        for (j in c('a','t','c','g')){
-                if (j %in% levels(nt$Var1)) Summary[k,j]<-nt$Freq[nt$Var1==j] 
-                else Summary[k,j]<-0 
-        }
-                        
-        #the max diff site
-        Summary$lowest_pos[k]<- dat10$pos[which.min(dat10$diff)]
-        Summary$lowest_base[k]<-dat10$ref[which.min(dat10$diff)]
-        Summary$lowest_codon[k]<-dat10$codon[which.min(dat10$diff)]
+for (i in 1:length(AAsummary)) colnames(AAsummary[[i]])<-c("Gene",paste0(names(AAsummary[i])))
+AA<-AAsummary%>% purrr::reduce(full_join, by='Gene')
+write.csv(AA,"Output1A/GLM/Overrepresented.site.AA.by.gene.csv")
 
-        #codon positions
-        Summary$No_codon1[k]<-nrow(dat10[dat10$codon==1,])
-        Summary$No_codon2[k]<-nrow(dat10[dat10$codon==2,])
-        Summary$No_codon3[k]<-nrow(dat10[dat10$codon==3,])
-                                   
-}
-
-write.csv(Summary,"Output/GLM/Summary_lowest10_byGene_all.csv")
+codonsummary<-codonsummary %>% adorn_totals("row")
+write.csv(codonsummary, "Output1A/GLM/Overrepresented.site.codons.csv")
 
 
+ggplot(PercentDeviates,aes(x=Gene,y=Proportion))+
+        geom_bar(stat="identity", color="#EE6677",fill="#EE667766",width=0.8)+
+        theme_bw()+labs(x="")+
+        theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
+        geom_hline(yintercept=0, size=0.4, color="gray10")+
+        theme(axis.text.x = element_text(size=12),
+              axis.text.y = element_text(size=12),axis.title.y = element_text(size = 14))+
+        ylab(expression(paste("Over/under-represented % of conserved sites")))
+ggsave("Output1A/GLM/Overrepresented.sites.perGene.Bottom5per.pdf", width=8, height=6)
+
+
+##### Over or under represented amino acids
+
+AA$Total<-rowSums(AA[2:12])
+AAwhole<-as.data.frame(table(data$WTAA))
+AAwhole$Prop.total<-AAwhole$Freq/sum(AAwhole$Freq)
+AAwhole$Prop.conserved<-AA$Total/sum(AA$Total)
+AAwhole$proportion<-(AAwhole$Prop.conserved-AAwhole$Prop.total)/AAwhole$Prop.total*100
+
+ggplot(AAwhole,aes(x=Var1,y=proportion))+
+        geom_bar(stat="identity",width=0.8,color="#EE6677",fill="#EE667766")+
+        theme_bw()+labs(x="")+
+        theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
+        geom_hline(yintercept=0, size=0.4, color="gray10")+
+        theme(axis.text.x = element_text(size=12),
+              axis.text.y = element_text(size=12),axis.title.y = element_text(size = 14))+
+        ylab(expression(paste("Over/under-represented AA \n at conserved sites (%)")))+
+        theme(plot.margin=unit(c(5,5,5,20),"points"))
+ggsave("Output1A/GLM/Overrepresented.AA.perGene.Bottom5per.pdf", width=10, height=6)
+
+
+
+
+
+
+
+
+
+
+
+
+########################
 #Filter out the stop sites
 Summary2<-data.frame("Gene"=genes$Gene[2:12], 'a'= rep(0, times=11), 't'= rep(0, times=11),'c'= rep(0, times=11),'g'= rep(0, times=11))
 for (i in 2:12){
@@ -289,7 +326,7 @@ for (i in 2:12){
         
 }
 
-write.csv(Summary2,"Output/GLM/Summary_lowest10_byGene_all_noStop.csv")
+write.csv(Summary2,"Output1A/GLM/Summary_lowest10_byGene_all_noStop.csv")
 
 
 
@@ -386,7 +423,7 @@ for (i in 1:3){
         
 }
 
-write.csv(Summary1,"Output/GLM/Summary_DeviatedMF_sites_3genes.csv")
+write.csv(Summary1,"Output1A/GLM/Summary_DeviatedMF_sites_3genes.csv")
 
 
 

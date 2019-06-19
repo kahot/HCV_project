@@ -1,13 +1,13 @@
 
 source("Rscripts/baseRscript.R")
 
-# read the files saved in Overview_output:
+# read the files saved in Overview1 (Maj):
 
-HCVFiles_overview<-list.files("Output/Overview_output/",pattern="overview.csv")
+HCVFiles_overview<-list.files("Output1A/Overview1/",pattern="overview.csv")
 
 Overview_summary<-list()
 for (i in 1:length(HCVFiles_overview)){ 
-        overviews<-read.csv(paste0("Output/Overview_output/",HCVFiles_overview[i]),stringsAsFactors=FALSE)
+        overviews<-read.csv(paste0("Output1A/Overview1/",HCVFiles_overview[i]),stringsAsFactors=FALSE)
         overviews<-overviews[,-1]
         Overview_summary[[i]]<-overviews
         names(Overview_summary)[i]<-substr(paste(HCVFiles_overview[i]),start=1,stop=7)
@@ -20,7 +20,7 @@ breaks=seq(-6,0,by=.2)
 for (i in 1:length(Overview_summary)){
         OverviewData<-Overview_summary[[i]]
 
-        filename<-paste0("Output/SelCoeff/DFE-",names(Overview_summary)[i],".pdf")
+        filename<-paste0("Output1A/SelCoeff/DFE-",names(Overview_summary)[i],".pdf")
         pdf(filename, width = 12, height = 7)
         par(mfcol=c(2,4))
         par(mar = c(4,4.3,2.5,1))
@@ -119,7 +119,7 @@ for (i in 1:length(Overview_summary)){
         names(sel.coef.CpG2)[i]<-filename
         names(sel.coef.nonCpG2)[i]<-filename
         
-        #write.csv(s,paste0("Output/SelCoeff/SelCoeffSummary-",names(Overview_summary[i]),".csv"))
+        #write.csv(s,paste0("Output1A/SelCoeff/SelCoeffSummary-",names(Overview_summary[i]),".csv"))
 }
 
 
@@ -209,7 +209,7 @@ for (i in 1:length(Overview_summary)){
         names(sel.coef)[i]<-filename
         names(sel.coef.CpG)[i]<-filename
         names(sel.coef.nonCpG)[i]<-filename
-        #write.csv(s,paste0("Output/SelCoeffSummary_T1-",names(Overview_summary[i]),".csv"))
+        #write.csv(s,paste0("Output1A/SelCoeffSummary_T1-",names(Overview_summary[i]),".csv"))
 }
 
 ## Compare Selection Coeffficient of syn vs nonsyn transversion mutations
@@ -280,7 +280,7 @@ for (i in 1:length(Overview_summary)){
         names(sel.coef)[i]<-filename
         names(sel.coef.CpG)[i]<-filename
         names(sel.coef.nonCpG)[i]<-filename
-        #write.csv(s,paste0("Output/SelCoeffSummary_T1-",names(Overview_summary[i]),".csv"))
+        #write.csv(s,paste0("Output1A/SelCoeffSummary_T1-",names(Overview_summary[i]),".csv"))
 }
 
 
@@ -335,7 +335,7 @@ types<-paste0(rep(c("syn", "nonsyn","CpG","nonCpG"), times = 3), rep(c('', 1, 2)
 
 SelCoeff_average<- data.frame(sapply(types,get))
 colnames(SelCoeff_average)<-c("Transition_syn","Transition_nonsyn","CpG-making","nonCpG-making","Transvs1_syn","Transvs1_nonsyn","Tvs1_CpG-making","Tvs1_nonCpG-making","Transvs2_syn","Transvs2_nonsyn","Tvs2_CpG-making","Tvs2_nonCpG-making")
-write.csv(SelCoeff_average,"Output/SelCoeff_averages_by_mutationTypes.csv")
+write.csv(SelCoeff_average,"Output1A/SelCoeff_averages_by_mutationTypes.csv")
 SelCoeff_average<-t(data.frame(syn.ave))
 SelCoeff_average<-rbind(SelCoeff_average,nonsyn.ave)
 SelCoeff_average<-combine(SelCoeff_average, CpG.ave,nonCpG.ave)
@@ -346,7 +346,7 @@ SelCoeff_average<-combine(SelCoeff_average, CpG.ave,nonCpG.ave)
 
 for (i in 1:length(Overview_summary)){
         OverviewData<-Overview_summary[[i]]
-        filename<-paste0("Output/SelCoeff/DFE_-NonCpGmaking",names(Overview_summary)[i],".pdf", sep = "")
+        filename<-paste0("Output1A/SelCoeff/DFE_-NonCpGmaking",names(Overview_summary)[i],".pdf", sep = "")
         pdf(filename, width = 12, height = 7)
         par(mfcol=c(2,4))
         par(mar = c(4,4.3,2.5,1))
@@ -388,7 +388,7 @@ for (i in 1:length(Overview_summary)){
 ## Plot CpGmaking and non-CpGmaking together
 for (i in 1:length(Overview_summary)){
         OverviewData<-Overview_summary[[i]]
-        filename<-paste0("Output/SelCoeff/DFE_CpG.vs.nonCpG",names(Overview_summary)[i],".pdf", sep = "")
+        filename<-paste0("Output1A/SelCoeff/DFE_CpG.vs.nonCpG",names(Overview_summary)[i],".pdf", sep = "")
         pdf(filename, width = 12, height = 7)
         par(mfcol=c(2,4))
         par(mar = c(4,4.3,2.5,1))
