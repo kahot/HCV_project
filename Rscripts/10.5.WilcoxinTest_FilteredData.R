@@ -29,59 +29,34 @@ names(mf.files)[5]<-"AllMutFreq"
 
 s<-length(HCVFiles3)
 
-
-#####################################
-
-dat<-FilteredOverview[[3]]
-muttypes<-dat[,c("pos","ref","Type","Type.tv1","Type.tv2","WTAA","MUTAA","TVS1_AA","TVS2_AA","makesCpG","makesCpG.tv1","makesCpG.tv2","bigAAChange","bigAAChange.tv1","bigAAChange.tv2")]
-
-mf_filtered<-list()
-for (i in 1:length(mf.files)){
-        #d<-mf.files[[i]]
-        d<-TsMutFreq2
-        M<-merge(d,muttypes,by="pos")
-        filename<-paste0(names(mf.files)[i],"_filtered")
-        print(filename)
-
-        M$mean<-rowMeans(M[2:s+1],na.rm=T)
-       
-        M2<-M[,-c(2:s+1)] #why it's not 2?
-        M2<-M2[,-which(names(M2)=="D75002.")]
-        assign(filename,M2)
-        mf_filtered[[i]]<-M2
-        names(mf_filtered)[i]<-filename
-        write.csv(M2,paste0("Output/Mut.freq.filtered/Summary_",filename,".csv"))
-}
-
-
 #### 1) Transition Mutations (mean)
 # 1.1) Summary
-Ts<-mf_filtered[[1]]
+Ts<-mf.files[[1]]
 Ts<-Ts[Ts$pos>=342, ]
-
-mean(Ts$mean[Ts$Type=="syn"]) #0.00911283
-mean(Ts$mean[Ts$Type=="nonsyn"]) #0.003973061
-mean(Ts$mean[Ts$Type=="stop"]) #0.002562846
+mean(Ts$mean[Ts$Type=="syn"]) #0.008093379
+mean(Ts$mean[Ts$Type=="nonsyn"]) #0.003351718
+mean(Ts$mean[Ts$Type=="stop"]) #0.002024048
 
 table(Ts$Type)
 #nonsyn   stop    syn 
-#5222    219   2556 
+#  5193    220   2545  
 
-std.error(Ts$mean[Ts$Type=="syn"]) #9.708321e-05
-std.error(Ts$mean[Ts$Type=="nonsyn"]) #3.058219e-05
-std.error(Ts$mean[Ts$Type=="stop"]) # 7.74389e-05
+std.error(Ts$mean[Ts$Type=="syn"]) #9.068166e-05
+std.error(Ts$mean[Ts$Type=="nonsyn"]) #2.774701e-05
+std.error(Ts$mean[Ts$Type=="stop"]) # 9.214146e-05
 
 r1<-wilcox.test(Ts$mean[Ts$Type=="syn"], Ts$mean[Ts$Type=="nonsyn"], alternative = "greater", paired = FALSE) 
 r2<-wilcox.test(Ts$mean[Ts$Type=="nonsyn"], Ts$mean[Ts$Type=="stop"], alternative = "greater", paired = FALSE) 
-r1[[3]]
-r2[[3]]
+r1[[3]]  #P=0
+r2[[3]]  #P=2.020456e-41
 
 T2<-Ts[Ts$ref=="a"|Ts$ref=="t",]
 r3<-wilcox.test(T2$mean[T2$Type=="syn"&T2$makesCpG==0], T2$mean[T2$Type=="syn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
 r4<-wilcox.test(T2$mean[T2$Type=="nonsyn"&T2$makesCpG==0], T2$mean[T2$Type=="nonsyn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
 
-r3[[3]]
-r4[[3]]
+r3[[3]]  #P=0.005231179
+r4[[3]]  #P=3.893716e-12
+
 
 ##################
 # 1.2) run Wilcoxin Test on means based on mutation types
@@ -103,7 +78,7 @@ se_nonCpG<-data.frame()
 
 table(dat$ref)
 #a    c    g    t 
-#1564 2441 2332 1660 
+#1556 2431 2310 1661  
 
 
 for (typeofsite in c("syn", "nonsyn","stop")){
@@ -138,49 +113,49 @@ rownames(se_CpG)<-c("syn_cpg_se","nonsyn_cpg_se","stop_cpg_se")
 MFbyType<-rbind(m,se,m_nonCpG,se_nonCpG,m_CpG,se_CpG)
 MFbyType2<-t(MFbyType)
 MFbyType2<-data.frame(MFbyType2)
-write.csv(MFbyType2,"Output/SummaryStats/TransitionMF_byNt_byType_mean.csv")
+write.csv(MFbyType2,"Output1A/SummaryStats/TransitionMF_byNt_byType_mean.csv")
 
 #run Wilcoxin Test  
-        for (i in c("a","t","c","g")) {
-                if (i=="a"|i=="t"){
-                        syncpg<-get(paste0("syn_",i,"_cpg"))
-                        synnoncpg<-get(paste0("syn_",i,"_noncpg"))
-                        nonsyncpg<-get(paste0("nonsyn_",i,"_cpg"))
-                        nonsynnoncpg<-get(paste0("nonsyn_",i,"_noncpg"))
-                         if (i=="a"){
-                                result1<-wilcox.test(syncpg, synnoncpg, alternative = "less", paired = FALSE) 
-                                result2<-wilcox.test(nonsyncpg,nonsynnoncpg,alternative = "less", paired = FALSE)
-                                for (r in 1:2){
-                                        result<-get(paste0('result',r))
-                                        WilcoxTest.results.nt$nt[r]<-i
-                                        WilcoxTest.results.nt$test[r]<-result[[7]]
-                                        WilcoxTest.results.nt$P.value[r]<-result[[3]]}
-                                }
-                        if (i=="t"){
-                                result3<-wilcox.test(syncpg, synnoncpg, alternative = "less", paired = FALSE) 
-                                result4<-wilcox.test(nonsyncpg,nonsynnoncpg,alternative = "less", paired = FALSE)
-                                for (r in 3:4){
-                                        result<-get(paste0('result',r))
-                                        WilcoxTest.results.nt$nt[r]<-i
-                                        WilcoxTest.results.nt$test[r]<-result[[7]]
-                                        WilcoxTest.results.nt$P.value[r]<-result[[3]]}
-                                }
+for (i in c("a","t","c","g")) {
+        if (i=="a"|i=="t"){
+                syncpg<-get(paste0("syn_",i,"_cpg"))
+                synnoncpg<-get(paste0("syn_",i,"_noncpg"))
+                nonsyncpg<-get(paste0("nonsyn_",i,"_cpg"))
+                nonsynnoncpg<-get(paste0("nonsyn_",i,"_noncpg"))
+                 if (i=="a"){
+                        result1<-wilcox.test(syncpg, synnoncpg, alternative = "less", paired = FALSE) 
+                        result2<-wilcox.test(nonsyncpg,nonsynnoncpg,alternative = "less", paired = FALSE)
+                        for (r in 1:2){
+                                result<-get(paste0('result',r))
+                                WilcoxTest.results.nt$nt[r]<-i
+                                WilcoxTest.results.nt$test[r]<-result[[7]]
+                                WilcoxTest.results.nt$P.value[r]<-result[[3]]}
                         }
-                else {  synnoncpg<-get(paste0("syn_",i,"_noncpg"))
-                        nonsynnoncpg<-get(paste0("nonsyn_",i,"_noncpg"))
-                        if (i =="c") {
-                                result5<-wilcox.test(synnoncpg,nonsynnoncpg, alternative = "greater", paired = FALSE) 
-                                WilcoxTest.results.nt$nt[5]<-i
-                                WilcoxTest.results.nt$test[5]<-result5[[7]]
-                                WilcoxTest.results.nt$P.value[5]<-result5[[3]]     }           
-                        if (i =="g") {
-                                result6<-wilcox.test(synnoncpg,nonsynnoncpg, alternative = "greater", paired = FALSE) 
-                                WilcoxTest.results.nt$nt[6]<-i
-                                WilcoxTest.results.nt$test[6]<-result6[[7]]
-                                WilcoxTest.results.nt$P.value[6]<-result6[[3]]    }
-                    }
-        } 
-write.csv(WilcoxTest.results.nt,paste0("Output/SummaryStats/WilcoxTestResults_",fname,"_eachNT_mean.csv"))
+                if (i=="t"){
+                        result3<-wilcox.test(syncpg, synnoncpg, alternative = "less", paired = FALSE) 
+                        result4<-wilcox.test(nonsyncpg,nonsynnoncpg,alternative = "less", paired = FALSE)
+                        for (r in 3:4){
+                                result<-get(paste0('result',r))
+                                WilcoxTest.results.nt$nt[r]<-i
+                                WilcoxTest.results.nt$test[r]<-result[[7]]
+                                WilcoxTest.results.nt$P.value[r]<-result[[3]]}
+                        }
+                }
+        else {  synnoncpg<-get(paste0("syn_",i,"_noncpg"))
+                nonsynnoncpg<-get(paste0("nonsyn_",i,"_noncpg"))
+                if (i =="c") {
+                        result5<-wilcox.test(synnoncpg,nonsynnoncpg, alternative = "greater", paired = FALSE) 
+                        WilcoxTest.results.nt$nt[5]<-i
+                        WilcoxTest.results.nt$test[5]<-result5[[7]]
+                        WilcoxTest.results.nt$P.value[5]<-result5[[3]]     }           
+                if (i =="g") {
+                        result6<-wilcox.test(synnoncpg,nonsynnoncpg, alternative = "greater", paired = FALSE) 
+                        WilcoxTest.results.nt$nt[6]<-i
+                        WilcoxTest.results.nt$test[6]<-result6[[7]]
+                        WilcoxTest.results.nt$P.value[6]<-result6[[3]]    }
+            }
+} 
+write.csv(WilcoxTest.results.nt,paste0("Output1A/SummaryStats/WilcoxTestResults_Ts_eachNT_mean.csv"))
 
 
 
@@ -195,24 +170,24 @@ Syn<-c(Tv1$mean[Tv1$Type.tv1=="syn"],Tv2$mean[Tv2$Type.tv2=="syn"])
 Nonsyn <- c(Tv1$mean[Tv1$Type.tv1=="nonsyn"],Tv2$mean[Tv2$Type.tv2=="nonsyn"])
 Stop <- c(Tv1$mean[Tv1$Type.tv1=="stop"],Tv2$mean[Tv2$Type.tv2=="stop"])
 
-mean(Syn) #0.000878499
-mean(Nonsyn) #0.0004854987
-mean(Stop) #0.0006739
+mean(Syn) #0.0007535948
+mean(Nonsyn) #0.0004099817
+mean(Stop) #0.0005612278
 
 c(length(Nonsyn),length(Stop),length(Syn))
-#nonsyn   stop    syn 
-#12236    628   3130 
+#nonsyn   stop  syn 
+# 12184   625  3107 
 
-std.error(Syn) # 1.757998e-05
-std.error(Nonsyn) # 5.374727e-06
-std.error(Stop) # 2.013763e-05
+std.error(Syn) # 1.508687e-05
+std.error(Nonsyn) # 4.921358e-06
+std.error(Stop) # 1.833373e-05
 
 r1<-wilcox.test(Syn, Nonsyn, alternative = "greater", paired = FALSE) 
 r2<-wilcox.test(Nonsyn, Stop, alternative = "greater", paired = FALSE) 
 wilcox.test(Nonsyn, Stop, alternative = "less", paired = FALSE) 
 
-r1[[3]]
-r2[[3]]
+r1[[3]] #2.811567e-175
+r2[[3]] #1
 
 
 Syncpg<-c(Tv1$mean[Tv1$Type.tv1=="syn"&Tv1$makesCpG.tv1==1],Tv2$mean[Tv2$Type.tv2=="syn"&Tv2$makesCpG.tv2==1])
@@ -223,8 +198,8 @@ NNcpg <- c(Tv1$mean[Tv1$Type.tv1=="nonsyn"&Tv1$makesCpG.tv1==0],Tv2$mean[Tv2$Typ
 r3<-wilcox.test(SynNoncpg,Syncpg, alternative = "greater", paired = FALSE) 
 r4<-wilcox.test(NNcpg,Nonsyncpg, alternative = "greater", paired = FALSE) 
 
-r3[[3]] #[1] 1.616136e-135
-r4[[3]] #[1] 1.14315e-211
+r3[[3]] #[1] 5.038601e-143
+r4[[3]] #[1] 1.390009e-237
 
 
 ## 2.2) Run Wilcoxon test on each NT, transversion
@@ -282,7 +257,7 @@ rownames(se_CpG)<-c("syn_cpg_se","nonsyn_cpg_se","stop_cpg_se")
 
 MFbyType.tv<-rbind(m,se,mr_CpG,se_CpG,m_nonCpG,se_nonCpG)
 MFbyType.tv2<-t(MFbyType.tv)
-write.csv(MFbyType.tv2,paste0("Output/SummaryStats/Transversion_MF_byNt_byType_mean.csv"))
+write.csv(MFbyType.tv2,paste0("Output1A/SummaryStats/Transversion_MF_byNt_byType_mean.csv"))
 
 # CpG vs nonCpG
 WilcoxTest.results.nt.tv<-data.frame(matrix(ncol=3,nrow=8))
@@ -334,10 +309,11 @@ for (i in c("a","t","c","g")) {
                            WilcoxTest.results.nt.tv$P.value[r]<-result[[3]]}         
                    }}     
    }
-write.csv(WilcoxTest.results.nt.tv,paste0("Output/SummaryStats/WilcoxTestResults_TV_eachNT_mean.csv"))
+write.csv(WilcoxTest.results.nt.tv,paste0("Output1A/SummaryStats/WilcoxTestResults_TV_eachNT_mean.csv"))
  
 
-#################
+#####################
+## Not sure if we need to run these:
 # 3) use all data to create summary / run Wilcoxon Test (using all values,not just the mean of 195 files) on Transition
 
 source("Rscripts/MutationFreqSum.filtered.R")

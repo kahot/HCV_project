@@ -69,7 +69,7 @@ summary(mod0)
 AIC(mod0) #-72234.93
 
 mod1<-betareg(mean ~ t + c + g + CpG + Nonsyn +bigAAChange+ t:Nonsyn + c:Nonsyn + g:Nonsyn +
-              Core +E1 +HVR1 +E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B,data = glmData2[glmData2$Stop == 0,])
+              Core +E1 +HVR1 +E2 +NS1 +NS2+NS3 +NS4A+NS5A+NS5B,data = glmData2[glmData2$Stop == 0,])
 summary(mod1)
 #Coefficients (mean model with logit link):
 #Estimate Std. Error  z value Pr(>|z|)    
@@ -225,7 +225,26 @@ summary(mod.g2)
 
 mod.g2.2<- update(mod.g1, ~. -NS3 -NS4A)
 summary(mod.g2.2)
-
+#Coefficients (mean model with logit link):
+#            Estimate Std. Error  z value Pr(>|z|)    
+#(Intercept) -4.86071    0.02145 -226.621  < 2e-16 ***
+#t            0.04417    0.02446    1.806 0.070962 .  
+#c           -0.36988    0.02472  -14.965  < 2e-16 ***
+#g           -0.51231    0.02770  -18.498  < 2e-16 ***
+#CpG         -0.02755    0.01538   -1.792 0.073198 .  
+#Nonsyn      -0.48787    0.02567  -19.003  < 2e-16 ***
+#bigAAChange -0.05441    0.01614   -3.371 0.000749 ***
+#Core        -0.06974    0.02346   -2.972 0.002956 ** 
+#E1           0.04393    0.02239    1.962 0.049742 *  
+#HVR1         0.30881    0.06204    4.977 6.45e-07 ***
+#E2           0.06383    0.01795    3.556 0.000377 ***
+#NS1          0.07479    0.03759    1.990 0.046631 *  
+#NS2          0.06150    0.02122    2.898 0.003752 ** 
+#NS5A         0.05448    0.01640    3.322 0.000894 ***
+#NS5B        -0.07258    0.01913   -3.795 0.000148 ***
+#t:Nonsyn    -0.10504    0.03103   -3.385 0.000712 ***
+#c:Nonsyn    -0.29206    0.03252   -8.981  < 2e-16 ***
+#g:Nonsyn    -0.12049    0.03393   -3.551 0.000384 ***
 
 mod.g3 <- update(mod.g2, ~. -E1 -NS4A)
 summary(mod.g3)        
@@ -278,13 +297,13 @@ write.csv(coef22,"Output_all/GLM/BetaReg_mod2.2_3A.csv")
 ###################
 ## plot the effects of each component for the 3 genotypes
 
-effects1<-read.csv("Output_all/GLM/Mod1_effects_comparison1.csv", stringsAsFactors = F)
-effects<-read.csv("Output_all/GLM/Mod1_effects_comparison.csv", stringsAsFactors = F)
-effects$factor<-factor(effects$factor, levels=effects$factor[1:19])
+#effects1<-read.csv("Output_all/GLM/Mod1_effects_comparison1.csv", stringsAsFactors = F)
+effects1<-read.csv("Output_all/GLM/Mod1_effects_comparison.csv", stringsAsFactors = F)
+effects1$factor<-factor(effects1$factor, levels=effects1$factor[1:19])
+effects1$percent<-effects1$percent*100
 
-
-cols2<-c("#66CCEE","#EE6677B3" ,"#228833B3")
-p1<-ggplot(effects, aes(factor(factor),percent, fill =genotype)) +geom_bar(stat="identity", position="dodge")+
+cols2<-c("#66CCEEE6","#EE6677CC" ,"#228833B3")
+p1<-ggplot(effects1, aes(factor(factor),percent, fill =genotype)) +geom_bar(stat="identity", position="dodge")+
         scale_fill_manual(values=cols2)+
         theme_test() +
         theme(axis.text=element_text(size=13),
@@ -292,5 +311,20 @@ p1<-ggplot(effects, aes(factor(factor),percent, fill =genotype)) +geom_bar(stat=
         theme(axis.text.x = element_text(angle = 90, hjust = 1))+
         labs(x="", y="Estimated effects (%)")
 
-ggsave("Output_all/GLM/Compare_effects_glm2.pdf", plot=p1, width = 14, height = 8)
-plot(effects, col )
+ggsave("Output_all/GLM/Compare_effects_glm.mod1.pdf", plot=p1, width = 11, height = 6.5)
+
+
+
+effects2<-read.csv("Output_all/GLM/Mod2_effects_comparison.csv", stringsAsFactors = F)
+effects2$factor<-factor(effects2$factor, levels=effects2$factor[1:17])
+effects2$percent<-effects2$percent*100
+
+p2<-ggplot(effects2, aes(factor(factor),percent, fill =genotype)) +geom_bar(stat="identity", position="dodge")+
+        scale_fill_manual(values=cols2)+
+        theme_test() +
+        theme(axis.text=element_text(size=13),
+              axis.title=element_text(size=14,face="bold"))+
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+        labs(x="", y="Estimated effects (%)")
+
+ggsave("Output_all/GLM/Compare_effects_glm.mod2.2.pdf", plot=p2, width = 10, height =6 )

@@ -42,7 +42,7 @@ geno<-c("1A","1B","3A")
 #create merged metadata since some are missing from "Output_all/Ts_summary_metadata.1A.csv"
 
 filename<-c("D75002","D75046", "D75007")
-Metadata
+Metadata<-list()
 for (i in 1:3){
         meta<-read.csv(paste0("Output_all/Overview",geno[i],"/Overview2.2/",filename[i],"-_overview2.2.csv"), stringsAsFactors = )
         meta<-meta[,c(2,3,7,9,22,34,35,38,41)]
@@ -70,7 +70,7 @@ merged.meta<-cbind(codon[1:nrow(merged.meta)],merged.meta)
 merged.meta<-merged.meta[c(2,1,3:ncol(merged.meta))]
 colnames(merged.meta)[2]<-"codon"
 
-#write.csv(merged.meta, "Output_all/Unfiltered/merged.metadata.csv")
+write.csv(merged.meta, "Output_all/Unfiltered/merged.metadata.csv")
 
 
 
@@ -137,8 +137,7 @@ for (f in 1:3){
         MutFreq_Ts.diff<-list()
         pos<-data.frame(merged.pos=c(261:8699))
         for (i in 1:length(flist)){
-                dat<-read.csv(paste0("Output_all/Overview",geno[f],"/Overview2.2/",flist[i]), stringsAsFactors = F)
-                dat<-dat[,-1]
+                dat<-read.csv(paste0("Output_all/Overview",geno[f],"/Overview2.2/",flist[i]), stringsAsFactors = F, row.names = 1)
                 #filter out the sites with read depth <1000
                 low_reads<-which(dat$TotalReads<1000) 
                 dat[low_reads,c(9:ncol(dat))]<-NA
@@ -211,8 +210,7 @@ for (f in 1:3){
 
 #Combine the mean mut freq of 3 genotypes into 1 table.
 
-Summary.same<-read.csv(paste0("Output_all/Unfiltered/Ts.same_Mean_metadata.1A.csv"),stringsAsFactors = F)
-Summary.same<-Summary.same[,-1]
+Summary.same<-read.csv(paste0("Output_all/Unfiltered/Ts.same_Mean_metadata.1A.csv"),stringsAsFactors = F, row.names = 1)
 
 for (f in 2:3){
         d<-read.csv(paste0("Output_all/Unfiltered/Ts.same_Mean_metadata.",geno[f],".csv"),stringsAsFactors = F)

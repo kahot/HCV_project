@@ -9,89 +9,48 @@ library(sfsmisc)
 source("Rscripts/baseRscript.R")
 
 
-#Load the overview files (summarized using the ref (H77))
-#####
-if (FALSE){
-HCVFiles_overview3<-list.files("Output/Overview_filtered/",pattern="overview3.csv")
-FilteredOverview<-list()
-for (i in 1:length(HCVFiles_overview3)){ 
-     overviews<-read.csv(paste0("Output/Overview_filtered/",HCVFiles_overview3[i]),stringsAsFactors=FALSE)
-     overviews<-overviews[,-1]
-     FilteredOverview[[i]]<-overviews
-     names(FilteredOverview)[i]<-substr(paste(HCVFiles_overview3[i]),start=1,stop=7)
-     }
-}
-######################################################
+HCVFiles_overview3<-list.files("Output1A/Overview3/",pattern="overview3.csv")
 
-##### read the saved summary mutation frequency files
-TsMutFreq<-read.csv("Output/MutFreq/Filtered_Transition_MutFreqSummary.csv",stringsAsFactors = F)
-Tv1.MutFreq<-read.csv("Output/MutFreq/Filtered_Transv1_MutFreqSummary.csv",stringsAsFactors = F)
-Tv2.MutFreq<-read.csv("Output/MutFreq/Filtered_Transv2_MutFreqSummary.csv",stringsAsFactors = F)
-Tvs.MutFreq<-read.csv("Output/MutFreq/Filtered_Transv_MutFreqSummary.csv",stringsAsFactors = F)
-AllMutFreq<-read.csv("Output/MutFreq/Filtered_All_MutFreqSummary.csv",stringsAsFactors = F)
-
-TsMutFreq<-TsMutFreq[,-1]
-Tv1.MutFreq<-Tv1.MutFreq[,-1]
-Tv2.MutFreq<-Tv2.MutFreq[,-1]
-Tvs.MutFreq<-Tvs.MutFreq[,-1]
-AllMutFreq<-AllMutFreq[,-1]
-
+##### read the summary mutation frequency files before removing the sites with >66% NA
+TsMutFreq  <-read.csv("Output1A/MutFreq.filtered/Ts_MutFreq_1A_all.csv",stringsAsFactors = F,row.names=1)
 #remove the sites before the coding region
-TsMutFreq2<-TsMutFreq[TsMutFreq$pos>=342,]
-Tv1.MutFreq2<-Tv1.MutFreq[Tv1.MutFreq$pos>=342,]
-Tv2.MutFreq2<-Tv2.MutFreq[Tv2.MutFreq$pos>=342,]
-Tvs.MutFreq2<-Tvs.MutFreq[Tvs.MutFreq$pos>=342,]
-AllMutFreq2<-AllMutFreq[AllMutFreq$pos>=342,]
-
-TsMutFreq3<-TsMutFreq2
-Tv1.MutFreq3<-Tv1.MutFreq2
-Tv2.MutFreq3<-Tv2.MutFreq2
-Tvs.MutFreq3<-Tvs.MutFreq2
-AllMutFreq3<-AllMutFreq2
-
+Ts<-TsMutFreq[TsMutFreq$pos>=342,]
+#attach the metadata
+M<-read.csv("Output1A/Overview3/D75002-_overview3.csv", stringsAsFactors = F,row.names=1)
+mut<-M[,c("pos","ref","Type","WTAA","MUTAA","bigAAChange","makesCpG")]
+Ts<-merge(TsMutFreq,mut, by="pos")
+Ts_NA<-Ts
+Ts_zero<-Ts
 # 1.Filter out Mut Freq < 0.01  -> replaced with NA
 mf<-0.01
-TsMutFreq2[TsMutFreq2<mf]<-NA
-Tv1.MutFreq2[Tv1.MutFreq2<mf]<-NA
-Tv2.MutFreq2[Tv2.MutFreq2<mf]<-NA
-Tvs.MutFreq2[Tvs.MutFreq2<mf]<-NA
-AllMutFreq2[AllMutFreq2<mf]<-NA
+Ts_NA[Ts_NA<mf]<-NA
 
 #Filter out Mut Freq < 0.001  -> replaced with 0
-mf<-0.01
-TsMutFreq3[TsMutFreq3<mf]<-0
-Tv1.MutFreq3[Tv1.MutFreq3<mf]<-0
-Tv2.MutFreq3[Tv2.MutFreq3<mf]<-0
-Tvs.MutFreq3[Tvs.MutFreq3<mf]<-0
-AllMutFreq3[AllMutFreq3<mf]<-0
-
-### Look at Transition mutations
-dat<-FilteredOverview[[3]]
-muttypes<-dat[,c("pos","ref","Type","Type.tv1","Type.tv2","WTAA","MUTAA","TVS1_AA","TVS2_AA","makesCpG","makesCpG.tv1","makesCpG.tv2","bigAAChange","bigAAChange.tv1","bigAAChange.tv2")]
-Ts_NA<-merge(TsMutFreq2,muttypes,by="pos")
-Ts_zero<-merge(TsMutFreq3,muttypes, by="pos")
-
+Ts_zero[Ts_zero<mf]<-0
 
 #calculate the mean
 Ts_NA$mean<-rowMeans(Ts_NA[2:(s+1)], na.rm=T)
-mean(Ts_NA$mean,na.rm=T) #0.02428692
+mean(Ts_NA$mean,na.rm=T) #0.02755865
 
 Ts_zero$mean<-rowMeans(Ts_zero[2:(s+1)],na.rm=T)
-mean(Ts_zero$mean) #0.002503222
+mean(Ts_zero$mean) #0.002039763
 
-write.csv(Ts_NA, "Output/Mut.freq.filtered/Summary_Ts_NA0.01.csv")
-write.csv(Ts_zero, "Output/Mut.freq.filtered/Summary_Ts_zero0.01.csv")
+# Ts 
+Ts$mean<-rowMeans(Ts[2:(s+1)], na.rm=T)
 
+
+write.csv(Ts_NA,   "Output1A/Q35Compare/Summary_Ts_NA0.01.csv")
+write.csv(Ts_zero, "Output1A/Q35Compare/Summary_Ts_zero0.01.csv")
 
 #########################################################################################
 ##Plot across the genome
 
-endnuc<-TsMutFreq2$pos[nrow(TsMutFreq2)]
+endnuc<-Ts$pos[nrow(Ts)]
 SNPFreq<-Ts_NA
 
 n<-data.frame("pos"=c(342:endnuc))
 SNPFreqs<-merge(n,SNPFreq,by="pos",all.x=T)
-pdf(paste0("Output/SummaryFig.Filtered/Ts.MutFreq.NAreplaced0.01.pdf"),width=15,height=7.5)
+pdf(paste0("Output1A/Q35Compare/Ts.MutFreq.NAreplaced0.01.pdf"),width=15,height=7.5)
 plot(mean~pos, data=SNPFreqs,t="n",log='y',yaxt='n',xlab='Genome position (H77)',ylab="Average transition mutation frequency",
      main="Transition muttaion frequency ",ylim=c(0.0001,0.1),xlim=c(340,8500))
 eaxis(side = 2, at = 10^((-1):(-(4))), cex=2)
@@ -110,7 +69,7 @@ SNPFreq<-Ts_zero
 
 n<-data.frame("pos"=c(342:endnuc))
 SNPFreqs<-merge(n,SNPFreq,by="pos",all.x=T)
-pdf(paste0("Output/SummaryFig.Filtered/Ts.MutFreq.Zero.replaced0.01.pdf"),width=15,height=7.5)
+pdf(paste0("Output1A/Q35Compare/Ts.MutFreq.Zero.replaced0.01.pdf"),width=15,height=7.5)
 plot(mean~pos, data=SNPFreqs,t="n",log='y',yaxt='n',xlab='Genome position (H77)',ylab="Average transition mutation frequency",
      main="Transition muttaion frequency ",ylim=c(0.00001,0.1),xlim=c(340,8500))
 eaxis(side = 2, at = 10^((-1):(-(5))), cex=2)
@@ -125,36 +84,39 @@ lines(roll100~pos,data=SNPFreqs, col="#AA3377")
 dev.off()
 
 ###########################################################################
-SumTab<-data.frame("data"=c("Ts_over1000","Ts_NA","Ts_zero"))
-TsMutFreq<-TsMutFreq[TsMutFreq$pos>=342,]
-TsMutFreq$mean<-rowMeans(TsMutFreq[2:196], na.rm=T)
-TsMutFreq<-merge(TsMutFreq,muttypes, by="pos")
-str(TsMutFreq[197:211])
+SumTab<-data.frame("data"=c("Ts","Ts_zero","Ts_NA"))
 t<-list()
-t[[1]]<-TsMutFreq
-t[[2]]<-Ts_NA
-t[[3]]<-Ts_zero
-names(t)<-c("Ts","Ts_NA","Ts_zero")
+t[[1]]<-Ts
+t[[2]]<-Ts_zero
+t[[3]]<-Ts_NA
+names(t)<-c("Ts","Ts_zero","Ts_NA")
 
 for (i in 1:3){
-        Ts<-t[[i]]
-        SumTab$mean[i]<-mean(Ts$mean, na.rm=T)
-        SumTab$Syn[i]<-mean(Ts$mean[Ts$Type=="syn"],na.rm=T) 
-        SumTab$Nonsyn[i]<-mean(Ts$mean[Ts$Type=="nonsyn"],na.rm=T)
-        SumTab$Stop[i]<-mean(Ts$mean[Ts$Type=="stop"],na.rm=T)
+        dat<-t[[i]]
+        SumTab$mean[i]<-mean(dat$mean, na.rm=T)
+        SumTab$Syn[i]<-mean(dat$mean[dat$Type=="syn"],na.rm=T) 
+        SumTab$Nonsyn[i]<-mean(dat$mean[dat$Type=="nonsyn"],na.rm=T)
+        SumTab$Stop[i]<-mean(dat$mean[dat$Type=="stop"],na.rm=T)
         
-        T2<-Ts[Ts$ref=="a"|Ts$ref=="t",]
-        SumTab$CpGmaking_Syn[i]<-mean(Ts$mean[Ts$Type=="syn"&Ts$makesCpG==1],na.rm=T)
+        T2<-dat[dat$ref=="a"|dat$ref=="t",]
+        SumTab$CpGmaking_Syn[i]  <-mean(T2$mean[T2$Type=="syn"&T2$makesCpG==1],na.rm=T)
         SumTab$NoCpGmaking_Syn[i]<-mean(T2$mean[T2$Type=="syn"&T2$makesCpG==0],na.rm=T)
-        r3<-wilcox.test(T2$mean[T2$Type=="syn"&T2$makesCpG==0], T2$mean[T2$Type=="syn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
-        SumTab$P_value.Wilcoxon.Test_syn[i]<-r3[[3]]
-        SumTab$CpGmaking_Nonsyn[i]<-mean(Ts$mean[Ts$Type=="nonsyn"&Ts$makesCpG==1],na.rm=T)
+        if (is.nan(SumTab$CpGmaking_Syn[i])|is.nan(SumTab$NoCpGmaking_Syn[i])) SumTab$P_value.Wilcoxon.Test_syn[i]<-NA
+        else {
+                r3<-wilcox.test(T2$mean[T2$Type=="syn"&T2$makesCpG==0], T2$mean[T2$Type=="syn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
+                SumTab$P_value.Wilcoxon.Test_syn[i]<-r3[[3]]
+                
+        }          
+        SumTab$CpGmaking_Nonsyn[i]<-mean(Ts$mean[T2$Type=="nonsyn"&T2$makesCpG==1],na.rm=T)
         SumTab$NoCpGmaking_Nonsyn[i]<-mean(T2$mean[T2$Type=="nonsyn"&T2$makesCpG==0],na.rm=T)
-        r4<-wilcox.test(T2$mean[T2$Type=="nonsyn"&T2$makesCpG==0], T2$mean[T2$Type=="nonsyn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
-        SumTab$P_value.Wilcoxon.Test_nonsyn[i]<-r4[[3]]
+        if (is.nan(SumTab$CpGmaking_Nonsyn[i])|is.nan(SumTab$NoCpGmaking_Nonsyn[i])) SumTab$P_value.Wilcoxon.Test_nonsyn[i]<-NA
+        else {
+                r4<-wilcox.test(T2$mean[T2$Type=="nonsyn"&T2$makesCpG==0], T2$mean[T2$Type=="nonsyn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
+                SumTab$P_value.Wilcoxon.Test_nonsyn[i]<-r4[[3]]
+        }
 }
 
-write.csv(SumTab, "Output/ReadsVs.MutFreq/Comparison_summary0.01.csv")
+write.csv(SumTab, "Output1A/Q35Compare/Tsfiltered_zero_NA_compare.summary0.01.csv")
 
 
 

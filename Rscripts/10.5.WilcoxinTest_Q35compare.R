@@ -8,7 +8,7 @@ filtered<-list()
 fnames<-c("Ts", "Ts_NA", "Ts_zero")
 for (i in 1:3){
         filename<-fnames[i]
-        df<-read.csv(paste0("Output/Mut.freq.filtered/Summary_",filename,".Q35.csv"),stringsAsFactors = F)
+        df<-read.csv(paste0("Output1A/Q35Compare/Summary_",filename,".Q35.csv"),stringsAsFactors = F)
         df<-df[,-1]
         filtered[[i]]<-df
         names(filtered)[i]<-filename
@@ -69,7 +69,7 @@ for (j in 1:3){
         rownames(se_CpG)<-c("syn_cpg_se","nonsyn_cpg_se","stop_cpg_se")
         
         MFbyType<-rbind(m,se,m_nonCpG,se_nonCpG,m_CpG,se_CpG)
-        write.csv(MFbyType,paste0("Output/SummaryStats/MutFreq_byNt_byType_",fname,".Q35.csv"))
+        write.csv(MFbyType,paste0("Output1A/SummaryStats/MutFreq_byNt_byType_",fname,".Q35.csv"))
 
         #run Wilcoxin Test  
         for (i in c("a","t","c","g")) {
@@ -111,7 +111,7 @@ for (j in 1:3){
                                 WilcoxTest.results.nt$P.value[6]<-result6[[3]]    }
                     }
                 } 
-        write.csv(WilcoxTest.results.nt,paste0("Output/SummaryStats/WilcoxTestResults_",fname,".csv"))
+        write.csv(WilcoxTest.results.nt,paste0("Output1A/SummaryStats/WilcoxTestResults_",fname,".csv"))
 
         #general Test
         ## Compare Syn vs Nonsyn, Nonsyn vs. Stop
@@ -128,6 +128,6 @@ for (j in 1:3){
                 WilcoxTest.results$test[r]<-result[[7]]
                 WilcoxTest.results$P.value[r]<-result[[3]]
         }
-        write.csv(WilcoxTest.results, paste0("Output/SummaryStats/WilcoxTest_general.",fname,".csv"))
+        write.csv(WilcoxTest.results, paste0("Output1A/SummaryStats/WilcoxTest_general.",fname,".csv"))
 }
 

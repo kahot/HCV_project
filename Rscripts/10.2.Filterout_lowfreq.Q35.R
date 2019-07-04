@@ -11,16 +11,16 @@ source("Rscripts/baseRscript.R")
 
 #####
 
-HCVFiles_overview3<-list.files("Output/Overview3/",pattern="overview3.csv")
+HCVFiles_overview3<-list.files("Output1A/Overview3/",pattern="overview3.csv")
 s<-length(HCVFiles_overview3)
 
 
 ##### read the saved summary mutation frequency files
-TsMutFreq<-read.csv("Output/MutFreqQ35/Filetered.Summary.Ts.Q35.csv",stringsAsFactors = F)
-TsMutFreq<-TsMutFreq[,-1]
-TsMutFreq<-TsMutFreq[TsMutFreq$pos>=342,]
+TsMutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv",stringsAsFactors = F,row.names = 1)
+mean(TsMutFreq$mean) #0.004804249
 
-mean(TsMutFreq$mean) #0.004831417
+TsMutFreq<-TsMutFreq[TsMutFreq$pos>=342,]
+mean(TsMutFreq$mean) #0.004828831
 
 TsMutFreq2<-TsMutFreq
 TsMutFreq3<-TsMutFreq2
@@ -69,20 +69,16 @@ Ts_NA<-TsMutFreq2
 Ts_zero<-TsMutFreq3
 
 #mean
-TsMutFreq$mean<-rowMeans(TsMutFreq[2:(s+1)], na.rm=T)
-mean(TsMutFreq$mean)
-#0.004828831
-
 Ts_NA$mean<-rowMeans(Ts_NA[2:(s+1)], na.rm=T)
 mean(Ts_NA$mean) #0.005236761
 
 Ts_zero$mean<-rowMeans(Ts_zero[2:(s+1)],na.rm=T)
 mean(Ts_zero$mean) #0.004751198
 
-
-write.csv(TsMutFreq, "Output/Mut.freq.filtered/Summary_Ts.Q35.csv")
-write.csv(Ts_NA, "Output/Mut.freq.filtered/Summary_Ts_NA.Q35.csv")
-write.csv(Ts_zero, "Output/Mut.freq.filtered/Summary_Ts_zero.Q35.csv")
+#save coding regions only
+write.csv(TsMutFreq, "Output1A/Q35Compare/Summary_Ts.Q35.csv")
+write.csv(Ts_NA, "Output1A/Q35Compare/Summary_Ts_NA.Q35.csv")
+write.csv(Ts_zero, "Output1A/Q35Compare/Summary_Ts_zero.Q35.csv")
 
 
 #########################################################################################
@@ -93,7 +89,7 @@ SNPFreq<-Ts_NA
 
 n<-data.frame("pos"=c(342:endnuc))
 SNPFreqs<-merge(n,SNPFreq,by="pos",all.x=T)
-pdf(paste0("Output/SummaryFig.Filtered/Ts.mutfreq.NAreplaced.pdf"),width=15,height=7.5)
+pdf(paste0("Output1A/Q35Compare/Ts.mutfreq.NAreplaced.pdf"),width=15,height=7.5)
 plot(mean~pos, data=SNPFreqs,t="n",log='y',yaxt='n',xlab='Genome position (H77)',ylab="Average transition mutation frequency",
      main="Transition muttaion frequency ",ylim=c(0.0001,0.1),xlim=c(340,8500))
 eaxis(side = 2, at = 10^((-1):(-(4))), cex=2)
@@ -112,7 +108,7 @@ SNPFreq<-Ts_zero
 
 n<-data.frame("pos"=c(1:endnuc))
 SNPFreqs<-merge(n,SNPFreq,by="pos",all.x=T)
-pdf(paste0("Output/SummaryFig.Filtered/Ts.mutfreq.Zero.replaced.pdf"),width=15,height=7.5)
+pdf(paste0("Output1A/Q35Compare/Ts.mutfreq.Zero.replaced.pdf"),width=15,height=7.5)
 plot(mean~pos, data=SNPFreqs,t="n",log='y',yaxt='n',xlab='Genome position (H77)',ylab="Average transition mutation frequency",
      main="Transition muttaion frequency ",ylim=c(0.0001,0.1),xlim=c(340,8500))
 eaxis(side = 2, at = 10^((-1):(-(4))), cex=2)
@@ -129,7 +125,7 @@ dev.off()
 #######  no filtering of low mut freq  #######
 SNPFreq<-TsMutFreq
 SNPFreqs<-merge(n,SNPFreq,by="pos",all.x=T)
-pdf(paste0("Output/SummaryFig.Filtered/Ts.mutfreq.NoFilter.pdf"),width=15,height=7.5)
+pdf(paste0("Output1A/Q35Compare/Ts.mutfreq.NoFilter.pdf"),width=15,height=7.5)
 plot(mean~pos, data=SNPFreqs,t="n",log='y',yaxt='n',xlab='Genome position (H77)',ylab="Average transition mutation frequency",
      main="Transition muttaion frequency ",ylim=c(0.0001,0.1),xlim=c(340,8500))
 eaxis(side = 2, at = 10^((-1):(-(4))), cex=2)
@@ -148,7 +144,7 @@ dev.off()
 ###################################################################
 ## compare 1.Q35 reads>1000, 2.mf<0.001=NA, 3.mf<0.001=0 4. Q30 reads>1000
 
-TsMutQ30<-read.csv("Output/Mut.freq.filtered/Summary_TsMutFreq_Q30.csv",stringsAsFactors = F)
+TsMutQ30<-read.csv("Output1A/Q35Compare/Summary_TsMutFreq_Q30.csv",stringsAsFactors = F)
 TsMutQ30<-TsMutQ30[,-1]
 mean(TsMutQ30$mean, na.rm=T)  #0.005426269
 
@@ -182,5 +178,5 @@ for (i in 1:4){
         SumTab$P_value.Wilcoxon.Test_nonsyn[i]<-r4[[3]]
 }
 
-write.csv(SumTab, "Output/MutFreqQ35/Comparison_summary.Ts.csv")
+write.csv(SumTab, "Output1A/Q35Compare/Comparison_summary.Ts.csv")
 

@@ -2,10 +2,10 @@ library(tidyverse)
 source("Rscripts/baseRscript.R")
 
 if (FALSE){
-HCVFiles_overview3<-list.files("Output/Overview3/",pattern="overview3.csv")
+HCVFiles_overview3<-list.files("Output1A/Overview3/",pattern="overview3.csv")
 FilteredOverview<-list()
 for (i in 1:length(HCVFiles_overview3)){ 
-        overviews<-read.csv(paste0("Output/Overview3/",HCVFiles_overview3[i]),stringsAsFactors=FALSE)
+        overviews<-read.csv(paste0("Output1A/Overview3/",HCVFiles_overview3[i]),stringsAsFactors=FALSE)
         overviews<-overviews[,-1]
         FilteredOverview[[i]]<-overviews
         names(FilteredOverview)[i]<-substr(paste(HCVFiles_overview3[i]),start=1,stop=7)

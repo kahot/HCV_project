@@ -7,16 +7,11 @@ library(sfsmisc)
 
 #############################
 ##### read the saved csv files
-TsMutFreq  <-read.csv("Output1A/MutFreq/TsMutFreq_maj_summary.csv",stringsAsFactors = F)
+TsMutFreq  <-read.csv("Output1A/MutFreq/TsMutFreq_maj_summary.csv",stringsAsFactors = F, row.names = 1)
 #Tv1.MutFreq<-read.csv("Output1A/MutFreq/Tv1MutFreq_maj_summary.csv",stringsAsFactors = F)
 #Tv2.MutFreq<-read.csv("Output1A/MutFreq/Tv2MutFreq_maj_summary.csv",stringsAsFactors = F)
-Tvs.MutFreq<-read.csv("Output1A/MutFreq/TvsMutFreq_maj_summary.csv",stringsAsFactors = F)
-AllMutFreq <-read.csv("Output1A/MutFreq/AllMutFreq_maj_summary.csv",stringsAsFactors = F)
-
-AllMutFreq<-AllMutFreq[,-1]
-TsMutFreq<-TsMutFreq[,-1]
-Tvs.MutFreq<-Tvs.MutFreq[,-1]
-
+Tvs.MutFreq<-read.csv("Output1A/MutFreq/TvsMutFreq_maj_summary.csv",stringsAsFactors = F, row.names = 1)
+AllMutFreq <-read.csv("Output1A/MutFreq/AllMutFreq_maj_summary.csv",stringsAsFactors = F, row.names = 1)
 
 ###################################
 ##Create minor variant (mutation) frequency summary 

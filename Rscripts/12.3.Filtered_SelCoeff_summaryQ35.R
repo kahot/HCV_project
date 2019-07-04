@@ -13,7 +13,7 @@ source("Rscripts/baseRscript.R")
 SC<-list()
 fnames<-c("Ts", "Ts_NA", "Ts_zero")
 for (i in 1:length(fnames)){
-        df<-read.csv(paste0("Output/SelCoeff/SC_",fnames[i],"_summary.csv"))
+        df<-read.csv(paste0("Output1A/SelCoeff/SC_",fnames[i],"_summary.csv"))
         print(fnames[i])
         print(mean(df$EstSC,na.rm=T))
         SC[[i]]<-df
@@ -73,7 +73,7 @@ colnames(AveSC)<-c("gene","SC")
 
 SC_summary<-merge(AveSC,GCs,by="gene")
 colnames(SC_summary)<-c("gene","ave.SC","GCcontent")
-write.csv(SC_summary,"Output/SummaryStats/SelCoeff_summary_by_genes.csv")
+write.csv(SC_summary,"Output1A/SummaryStats/SelCoeff_summary_by_genes.csv")
 
 ###########  Plot the average Sel Coeff by genes
 
@@ -85,7 +85,7 @@ plot1<-ggboxplot(sc,x="gene",y="mean", xlab="Gene", ylab="Estimated selective co
 plot1<-ggboxplot(sc,x="gene",y="mean", xlab="Gene", ylab="Estimated selective coefficient",color="gray40")+
         theme(legend.position="none")
 
-ggsave(filename=paste0("Output/SelCoeff/",title,".2.pdf"),plot=plot1, width = 10, height = 7)
+ggsave(filename=paste0("Output1A/SelCoeff/",title,".2.pdf"),plot=plot1, width = 10, height = 7)
 
 
 
@@ -100,8 +100,8 @@ ylow=0.00008
 yhigh=0.03
 cols <- c("#66CCEE","#228833","#CCBB44","#EE6677","#AA3377","#4477AA","#BBBBBB")
 title<-"SC_acroosGenoem_twocolors"
-pdf(paste0("Output/SelCoeff/",title,".pdf"),width=15,height=7.5)
-#pdf(paste0("Output/SummaryFigures/SC_acrossGenome_twocolors.pdf"),width=15,height=4.5)
+pdf(paste0("Output1A/SelCoeff/",title,".pdf"),width=15,height=7.5)
+#pdf(paste0("Output1A/SummaryFigures/SC_acrossGenome_twocolors.pdf"),width=15,height=4.5)
 plot(EstSC~pos, data=SCs,t="n",log='y',yaxt='n',xlab='Genome position (H77)',ylab="Estimated selection coefficient",
      main=paste0(title),ylim=c(ylow,yhigh),xlim=c(340,8618))
 eaxis(side = 2, at = 10^((0):(-(5))), cex=2)
@@ -170,7 +170,7 @@ scColors<-qualitative_hcl(11, palette = "Dynamic")
 #scColors<-c("#77AADD","#99DDFF","#44BB99","#BBCC33","#AAAA00","#EEDD88","#EE8866","#FFAABB","DDDDDD")
 ylow=0.00009
 yhigh=0.03
-pdf(paste0("Output/SelCoeff/SC_acrossGenome.pdf"),width=15,height=4.5)
+pdf(paste0("Output1A/SelCoeff/SC_acrossGenome.pdf"),width=15,height=4.5)
 plot(EstSC~pos, data=SCs,t="n",log='y',yaxt='n',xlab='',ylab="",
      ylim=c(ylow,yhigh),xlim=c(340,8618))
 
@@ -210,7 +210,7 @@ dev.off()
 #source("Rscripts/SelectionCoefficientSummary.R")
 #1.Transition Mutation
 colors<-c("#66CCEECC", "#228833CC" ,"#CCBB44CC", "#EE6677CC","#66CCEECC", "#228833CC", "#CCBB44CC", "#EE6677CC")
-filename<-paste0("Output/SelCoeff/SC_Histograms_median.pdf")
+filename<-paste0("Output1A/SelCoeff/SC_Histograms_median.pdf")
 pdf(filename, width = 12, height = 7)
 par(mfrow=c(2,4))
 par(mar = c(4,4.3,2.5,1))
@@ -237,7 +237,7 @@ for (type in c("syn","nonsyn")){
 dev.off()
 
 #Same plot with Mean
-filename<-paste0("Output/SelCoeff/SC_Histograms_mean.pdf")
+filename<-paste0("Output1A/SelCoeff/SC_Histograms_mean.pdf")
 pdf(filename, width = 12, height = 7)
 par(mfrow=c(2,4))
 par(mar = c(4,4.3,2.5,1))

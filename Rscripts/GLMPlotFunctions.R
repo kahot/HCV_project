@@ -54,12 +54,12 @@ makeDataFrameToModify <- function(NsOrNo = 0, CpGorNo = 0, bigAAChangeOrNo = 0){
         return(as.matrix(atcg.mat))
 } 
 
+
 ## Function to plot the observed mut freq data 
 plotDat <- function(NsOrNo, CpGorNo, bigAAChangeOrNo, colVal, offsetval){
         
         pchpar <- 16
         cexpar <- .6
-        opacity <- 40
         
         nsinds <- which(d$Type == c("syn", "nonsyn")[NsOrNo + 1])
         cpginds <- which(d$makesCpG == CpGorNo)
@@ -75,18 +75,9 @@ plotDat <- function(NsOrNo, CpGorNo, bigAAChangeOrNo, colVal, offsetval){
         yinds <- d$mean[datInds]
         xjit <- rnorm(length(xinds), offsetval, .03) #jitter
         
-        for(i in 1:4){
-                relinds <- which(xinds == i)
-                #        hist(log(ysToPlot[relinds]))
-                #        abline(v = mean(log(ysToPlot[relinds])))
-                if(length(relinds) > 0){
-                        #            points(i+offsetval, mean(yinds[relinds]), pch = "-", cex = 4)
-                        #            points(i+offsetval, median(yinds[relinds]), pch = "-", cex = 4, col = "blue")
-                }
-        }
         yinds[yinds == 0] <- 10^(-4.4)
         
-        points(xinds + xjit, yinds, col = t.col(colVal, percent = opacity),  pch = pchpar, cex = cexpar)
+        points(xinds + xjit, yinds, col = t.col(colVal),  pch = pchpar, cex = cexpar)
 }
 
 #Function to plot the estimated mut freq from GLM/beta regreassion
@@ -113,7 +104,7 @@ plotVals <- function(NsOrNo, CpGorNo, bigAAChangeOrNo, colVal, offset){
         
         #plot
         arrows((1:4)[restrict] + offset, arrowToPlotLow[restrict], (1:4)[restrict] + offset, arrowToPlotHigh[restrict], length = arrowlen, code = 3, angle = 90, lwd = arrowlwd, col = "black")
-        points((1:4)[restrict] + offset, pointToPlot[restrict], col ="black", bg = colVal,  pch = pchpar, cex = 1)
+        points((1:4)[restrict] + offset, pointToPlot[restrict], col ="black", bg = substr(colVal,start=1, stop=7),  pch = pchpar, cex = .8)
         #arrows((1:4)[restrict] + offset, arrowToPlotLow[restrict], (1:4)[restrict] + offset, arrowToPlotHigh[restrict], length = arrowlen, code = 3, angle = 90, lwd = arrowlwd, col = "black")
         
 }

@@ -44,7 +44,7 @@ for (g in 1:3){
 
 ## nucleotide diversity correlation between populations vs. within population
 
-# Use genbank 1B dataset
+# Use genbank 1B dataset for 1B entropy calculation (not enough samples)
 g=2
 entropy<-read.table(paste0("Data/HCV1B_ncbi_logo_data.txt"))
 colnames(entropy)<-c("row","A","C","G","T","Entropy","Low","High","Weight")
@@ -84,8 +84,7 @@ dev.off()
 #1. Entropy
 
 #adjust for indels 
-Positions<-read.csv("Data/MergedPositionInfo.csv")
-Positions<-Positions[,-1]
+Positions<-read.csv("Data/MergedPositionInfo.csv", row.names = 1)
 
 pos<-data.frame(merged.pos=Positions$merged.pos)
 geno<-c("1A","1B","3A")
@@ -254,7 +253,7 @@ plot(div$Entropy)
 library(scatterplot3d)
 library(colorspace)
 
-df<-read.csv("Output_all/TsMF_merged_3genotypes.csv")
+df<-read.csv("Output_all/mutfreq_3genotypes.csv")
 df<-df[286:8591,]
 
 scatterplot3d(df[,3:5],pch = 16, color="#66CCEE")
@@ -303,5 +302,37 @@ abline(lm(-(comparison$Entropy)~comparison$mean), col = "gray70")
 text(x=0.085,y=-0.2, labels="rho=0.810***",cex=1.2)
 dev.off()
 
+###
+
+#1. mutation frequency
+df<-read.csv("Output_all/mutfreq_3genotypes.csv")
+df<-df[286:8591,]
+colnames(df)[3:5]<-c("MutFreq.1A","MutFreq.1B","MutFreq.3A")
+#2. Entropty
+EN<-read.csv("Output_all/Diversity/Entropy_merged_3genotypes.csv")
+
+library(psych)
+pairs.panels(df[3:5],method="spearman", pch=".", hist.col = "#66CCEECC",,ellipses=F, lm=T,rug=F, col="#66CCEE")
+text(.96,1,labels="***",cex=1.5)
+text(.6,1,labels="***",cex=1.5)
+text(.96,.5,labels="***",cex=1.5)
+
+#pdf("Output_all/Diversity/Cor_entropy.pdf", width = 8, height = 5.7)
+pairs.panels(EN[5:7],method="spearman",pch=".", hist.col = "#66CCEECC",,ellipses=F, lm=T,rug=F, col="#66CCEE")
+text(.96,1,labels="***",cex=1.5)
+text(.6,1,labels="***",cex=1.5)
+text(.96,.5,labels="***",cex=1.5)
+#dev.off()
 
 
+
+
+library(PerformanceAnalytics)
+chart.Correlation(df[3:5],method="spearman", pch=".",cex.cor=.5,histogram=T, col="gray")
+chart.Correlation(df[3:5],method="spearman",pch=".", col="gray")
+
+chart.Correlation(EN[5:7],method="spearman")
+
+library(corrplot)
+x <- cor(df[3:5],use="na.or.complete",method = "spearman")
+corrplot(x, type="upper", order="hclust")

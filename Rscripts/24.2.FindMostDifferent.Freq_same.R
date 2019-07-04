@@ -6,8 +6,7 @@ library(zoo)
 library(reshape2)
 library(ggplot2)
 
-cols2<-c("#66CCEE","#EE6677" ,"#228833")
-colors<-c("#66CCEE99","#EE667799" ,"#22883399")
+cols2.60<-paste0(cols2,"99")
 genes<-read.csv("Data/HCV_annotations_joined.csv", stringsAsFactors = F)
 
 cols3<-c("#66CCEE4D","#66CCEE","#EE66774D","#EE6677")
@@ -35,9 +34,10 @@ for (g in 1:3){
         hist(mf1$diff, breaks=40, xlab="Difference in mutation frequency", main=compare)
         dev.off()
         
-        #Order the sites with Genotyepe g1  having higher/lower mut greq than g2(mvf.H / mvf.L)
+        #Order the sites with Genotyepe g1 having higher/lower mut freq than g2 (mvf.H / mvf.L)
         mf.H<-mf1[order(mf1$diff, decreasing = T,na.last = T),]
         mf.L<-mf1[order(mf1$diff,decreasing=F,na.last=T),]
+        #select top 5% of the sites
         mf.H<-mf.H[c(1:s),] 
         mf.L<-mf.L[c(1:s),] 
         
@@ -50,7 +50,11 @@ for (g in 1:3){
         
         ggplot(Freq2,aes(x=Gene, y=Counts, fill=Genotype))+
                 geom_bar(stat='identity', position='dodge')+
-                ggtitle("# of sites with largest differences in mutation frequency")
+                ggtitle("Sites with the largest difference in mutation frequency between the genotypes")+
+                theme(legend.title=element_blank())+
+                theme(plot.title = element_text(size =11))+
+                ylab("Number of sites in top 5%")
+        
         ggsave(filename=paste0("Output_all/Difference/Diff.mf.by.gene.",compare,".pdf"),width = 8, height = 6)
         
         #summary tables for g1
@@ -90,11 +94,11 @@ for (g in 1:3){
         
         #proportion of most different sites in mut freq
         PercentHighDiff<-data.frame("Gene"= paste0(genes$Gene[2:12]), "Proportion"=rep('',times=11), stringsAsFactors = FALSE)
-        DF<-mf1[,c("merged.pos", "gene","diff.abs")]
-        DF<-DF[!is.na(DF$diff.abs),]
+        Dat<-mf1[,c("merged.pos", "gene","diff.abs")]
+        Dat<-Dat[!is.na(Dat$diff.abs),]
         
         for (i in 2:12){
-                n<-DF[DF$gene==genes$Gene[i],]
+                n<-Dat[Dat$gene==genes$Gene[i],]
                 df<-mf.top[mf.top$gene==genes$Gene[i],]
                 
                 PercentHighDiff$Proportion[i-1] <- nrow(df)/(nrow(n))*100
@@ -105,8 +109,8 @@ for (g in 1:3){
         PercentHighDiff$Proportion<-as.numeric(PercentHighDiff$Proportion)
         write.csv(PercentHighDiff,paste0("Output_all/Difference/Top5percent.MostDifferent.SummarybyGene.",compare,".csv"))
         
-        ggplot(PercentHighDiff,aes(x=Gene,y=Proportion))+geom_bar(stat='identity', fill='#66CCEE99',width=0.8)+
-                labs(x="Genes",y="% of sites highly different in MF betw/ 1A & 3A")+
+        ggplot(PercentHighDiff,aes(x=Gene,y=Proportion))+geom_bar(stat='identity', fill='#66CCEECC',width=0.8)+
+                labs(x="Genes",y=paste0("% of sites highly different in MF betw/ ",g1," & ",g2))+
                 theme_classic()
         ggsave(filename=paste0("Output_all/Difference/Top5percent.MostDifferent.MF.by.gene.",compare,".pdf"), width = 5.7, height = 4.5)
         
@@ -131,7 +135,7 @@ for (g in 1:3){
         write.csv(PercentHighDiff2,paste0("Output_all/Difference/Top1percent.MostDifferent.SummarybyGene.",compare,".csv"))
         
         ggplot(PercentHighDiff2,aes(x=Gene,y=Proportion))+geom_bar(stat='identity', fill='#EE667799',width=0.8)+
-                labs(x="Genes",y="% of sites highly different in MF betw/ 1A & 3A")+
+                labs(x="Genes",y=paste0("% of sites highly different in MF betw/ ",g1," & ",g2))+
                 theme_classic()
         ggsave(filename=paste0("Output_all/Difference/Top1per.MostDifferent.MF.by.gene.",compare,".pdf"),width = 5.7, height = 4.5)
 
@@ -179,9 +183,9 @@ for (g in 1:3){
                 AA1$diff.nonsyn<-(AA1$per.nonsyn-AA1$total.per.nonsyn)/AA1$total.per.nonsyn*100
                 ggplot(AA1,aes(x=AA, y=diff.nonsyn))+geom_bar(stat='identity',fill='#66CCEE')+
                         theme_classic()+labs(x="Amino acids", y="% difference")+
-                        ggtitle(paste0("Over- or under-represented AAs of highly different MF sites of ", G, " (",compare,")"))+
+                        ggtitle(paste0("Over-/Under-represented AAs of highly different MF sites of ", G, " (",compare,")"))+
                         theme(plot.title = element_text(size=12))
-                ggsave(filename=paste0("Output_all/Difference/Overrepresented.AAs.",G,".in.",".pdf"), width = 7, height = 4.5)
+                ggsave(filename=paste0("Output_all/Difference/Overrepresented.AAs.",G,".in.",compare,".pdf"), width = 7, height = 4.5)
                 }      
 
 }

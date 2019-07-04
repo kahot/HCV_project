@@ -7,13 +7,12 @@ library(zoo)
 
 ############
 
-Glmdata<-read.csv("Output/GLM/GlmdataFull.Ts.Q35.csv")
-GlmData<-Glmdata[,-1]
-s<-length(list.files("Output/Overview3/",pattern="overview3.csv"))
-data<-GlmData
+Glmdata<-read.csv("Output1A/GLM/GlmdataFull.Ts.Q35.csv", row.names = 1, stringsAsFactors = F)
+s<-length(list.files("Output1A/Overview3/",pattern="overview3.csv"))
+data<-Glmdata
 
 
-modcoef<-read.csv("Output/GLM/BetaReg_mod.g2_Ts.Q35.csv",stringsAsFactors = F)
+modcoef<-read.csv("Output1A/GLM/BetaReg_mod.g2_Ts.Q35.csv",stringsAsFactors = F)
 rownames(modcoef)<-modcoef$X
 modcoef<-modcoef[,-1]
 coef.vals <- modcoef[,1]
@@ -81,22 +80,21 @@ for (i in 1:nrow(data)){
 # find the differences betweeen [observed - estimated]
 data$diff<- data$EstiamtedMF -data$mean
 range(data$diff)  #-0.02639719  0.01081907
-plot(data$diff)
+plot(data$diff, pch=".")
 #data$over0.008<-sapply(data$diff,function(x){ if (x>0.008) x=x
 #                       else x<-NA})
     
-write.csv(data,"Output/GLM/Ts_Obs.vs.Estimated.csv")
+write.csv(data,"Output1A/GLM/Ts_Obs.vs.Estimated.csv")
 
                         
 #data_all<-data
 data_s<-data[data$Stop==0,]
 
-# the differece is small for lower end, so focus on the lowest 5%
+#Look for largest difference (i.e. observed mf << estiamted mf, conserved sites)
 
 #####Data Prep
 #Attach the reference sequence info
-Transitions<-read.csv("Output/Mut.freq.filtered/Summary_Ts.Q35.csv")
-Transitions<-Transitions[,-1]
+Transitions<-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv", row.names = 1, stringsAsFactors = F)
 data<-merge(data, Transitions[,c("pos","ref")], by ="pos")
 
 #add the codon position
@@ -123,13 +121,17 @@ for (i in c("a","t","c","g")){
 }
                         
                         
-# data files in the order of a-t-c-g with syn-> nonsyn-> noncpg->cpg: a_00 means "syn, noncpg a"
+# data files in the order of a-t-c-g with syn(0)/nonsyn(1), noncpg(0)/cpg(1): a_00 means "syn, noncpg a"
 names(MFdata)
 v<-c(1:8,9,11,13,15)
 
+
+
+
 ##########
-### Bottom5%
-pdf(file="Output/GLM/Bottom5percentMF_bytype_plot.pdf", width=8,height=11.5)
+### Plot the lowest MF by gene & by type:
+
+pdf(file="Output1A/GLM/Bottom5percentMF_bytype_plot.pdf", width=8,height=11.5)
 par(mfrow = c(6,2),mar=c(2,2,1,1))
 
 MFbottom5<-list()
@@ -190,7 +192,7 @@ dat$percent<-as.numeric(dat$percent)
 plot1<-ggplot(dat,aes(x=gene,y=percent))+geom_bar(stat='identity', fill='#66CCEEE6',width=0.8)+
         labs(x="Genes",y="Proportion of highy conserved sites (%)")+
         theme_classic()
-ggsave(filename=paste0("Output/SummaryFigures/Bottom5percent_MF-by-genes.pdf"),plot=plot1, width = 4.7, height = 3.5)
+ggsave(filename=paste0("Output1A/SummaryFigures/Bottom5percent_MF-by-genes.pdf"),plot=plot1, width = 4.7, height = 3.5)
 
 
 
@@ -204,7 +206,7 @@ colnames(codon)<-c("Codon_position","Count")
 plot2<-ggplot(codon,aes(x=Codon_position,y=Count))+geom_bar(stat='identity', fill='#44AA99CC',width=0.8)+
         labs(x='Codon position',y="Counts")+
         theme_classic()
-ggsave(filename=paste0("Output/SummaryFigures/ConservedSites-CodonPosition.pdf"),plot=plot2, width = 3, height = 3.5)
+ggsave(filename=paste0("Output1A/SummaryFigures/ConservedSites-CodonPosition.pdf"),plot=plot2, width = 3, height = 3.5)
 
 
 #CpG making or not in the bottom 10 with A or T
@@ -280,7 +282,7 @@ SCs$percent<-as.numeric(SCs$percent)
 plot1<-ggplot(SCs,aes(x=Var1,y=percent))+geom_bar(stat='identity', fill='#66CCEEE6',width=0.8)+
         labs(x="Genes",y="Proportion (%) of most costly sites (top 3%) ")+
         theme_classic()
-ggsave(filename=paste0("Output/SummaryFigures/HighestSC-by-genes.pdf"),plot=plot1, width = 4.7, height = 3.5)
+ggsave(filename=paste0("Output1A/SummaryFigures/HighestSC-by-genes.pdf"),plot=plot1, width = 4.7, height = 3.5)
 
 
 # plot by nucleotide bases
@@ -295,7 +297,7 @@ NT$nucleotide<-toupper(NT$nucleotide)
 plot2<-ggplot(NT,aes(x=nucleotide,y=percent))+geom_bar(stat='identity', fill='#44AA99CC',width=0.8)+
         labs(x='Nucleotide',y="Percent of most costly sites")+
         theme_classic()+ scale_y_continuous(limits=c(0,8),oob = rescale_none)
-ggsave(filename=paste0("Output/SummaryFigures/HighestSC-NucPercent.pdf"),plot=plot2, width = 3, height = 3.5)
+ggsave(filename=paste0("Output1A/SummaryFigures/HighestSC-NucPercent.pdf"),plot=plot2, width = 3, height = 3.5)
 
 
 
@@ -349,39 +351,4 @@ ggsave(filename=paste0("Output/SummaryFigures/ConservedSites-NucPercent.pdf"),pl
 
 
 
-
-############ Bottom 10 #########  No need - delete later
-
-pdf(file="Output/GLM/Bottom10MF_plot.pdf", width=8,height=11.5)
-par(mfrow = c(6,2),mar=c(2,2,1,1))
-
-MFbottom10<-list()
-k=1
-for (i in v){
-        df<- MFdata[[i]]
-        Bottom10<-head(df[order(df$mean, decreasing= F),], n=10)
-        MFbottom10[[k]]<-Bottom10
-        names(MFbottom10)[k]<-names(MFdata)[i]
-        k=k+1
-        
-        plot(Bottom10$pos,Bottom10$diff, pch=16, col="#EE6677", cex=.8, main = names(MFdata)[i], 
-             xlab='Genome position', 
-             ylab= '[Observed - Estimated] mutation Frequency')  
-        
-        
-}
-dev.off()        
-Sum_Bottom10<-do.call(rbind,MFbottom10)      
-table(Sum_Bottom10$codon)        
-# 1  2  3 
-#37 33 50
-
-table(Sum_Bottom10$gene)
-# 2  3  5  6  7  8  9 10 11 12 
-#21  1 12  2  9 17  4 10 16 28 
-
-LowMF_genes<-data.frame(table(Sum_Bottom10$gene))
-LowMF_genes$Var1<-as.integer(as.character(LowMF_genes$Var1))
-genes<-read.csv("Data/HCV_annotations2.csv",stringsAsFactors = F)
-LowMF_genes$gene<-genes$Gene[LowMF_genes$Var1]###############
 

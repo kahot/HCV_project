@@ -1,3 +1,10 @@
+library(plotrix)
+library(reshape)
+library(tidyverse)
+library(zoo)
+library(purrr)
+
+
 #Create the filtered mut frequency table of all samples 
 
 HCVFiles_overview3<-list.files("Output1A/Overview3/",pattern="overview3.csv")
@@ -61,9 +68,9 @@ colnames(M)[33:35]<-c("MutAA","MutAA.tv1","MutAA.tv2")
 
 for (i in 1:5) {
         dat<-get(files[i])
-        dat$mean<-rowMeans(dat[2:s+1],na.rm=T)
-        if(i==2|i==3) muttypess<-M[,c("pos","ref", paste0("Type",cnames[i]),"WTAA",paste0("MutAA",cnames[i]), paste0("makesCpG",cnames[i]), paste0("bigAAChange",cnames[i]))]
-        if(i==4|i==5) muttypess<-M[,c("pos","ref","Type","WTAA","MutAA","makesCpG","bigAAChange")]
+        dat$mean<-rowMeans(dat[2:(s+1)],na.rm=T, dims=)
+        if(i==1|i==2|i==3) muttypes<-M[,c("pos","ref", paste0("Type",cnames[i]),"WTAA",paste0("MutAA",cnames[i]), paste0("makesCpG",cnames[i]), paste0("bigAAChange",cnames[i]))]
+        if(i==4|i==5) muttypes<-M[,c("pos","ref","Type","WTAA","MutAA","makesCpG","bigAAChange")]
         
         dat2<-merge(dat,muttypes,by="pos")
         mf.files[[i]]<-dat2
@@ -74,13 +81,18 @@ for (i in 1:5) {
 }
 
 
-
+#AllMutFreq.F<-read.csv("Output1A/MutFreq.filtered/Filtered.AllMutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
 
 ##### Chceck the mean mut freq
 
 mean(rowMeans(Ts.F[,2:(s+1)],na.rm=T),na.rm=T)   # 0.004804249 (Q35),  0.005549325 (Q30 reads<1000)
 mean(rowMeans(Tvs.MutFreq.F[,2:(s+1)],na.rm=T),na.rm=T) # 0.0009677105 (Q35),   0.001138303 (Q30 reads<1000)
 
+mean(rowMeans(AllMutFreq.F[,2:(s+1)],na.rm=T),na.rm=T) #0.005771959
+
+std.error(AllMutFreq.F$mean) # 4.563061e-05
+std.error(Ts.F$mean) # 4.241551e-05
+std.error(Tvs.MutFreq.F$mean) #9.613703e-06
 #coding regions only
 TMutFreq2.F<-Ts.F[Ts.F$pos>=342,]
 mean(TMutFreq2.F$mean, na.rm=T) #  0.004831417

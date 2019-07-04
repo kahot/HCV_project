@@ -91,3 +91,9 @@ amCat <- function(AA){
 cols <- c("#66CCEE","#228833","#CCBB44","#EE6677","#AA3377","#4477AA","#BBBBBB")
 # from https://personal.sron.nl/~pault/
 
+#3 colors for Genotypes)
+cols2<-c("#66CCEE" ,"#EE6677", "#228833")
+
+# (4 colors for GLM )
+cols4<-c("#009988" ,"#66CCEE", "#EE6677", "#4477AA")
+

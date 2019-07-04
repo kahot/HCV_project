@@ -110,6 +110,12 @@ mean(rowMeans(TsMutFreq[2:(s+1)],na.rm=T),na.rm=T) #[1] 0.008012215
 mean(rowMeans(Tvs.MutFreq[2:(s+1)],na.rm=T),na.rm=T) # 0.001501265
 mean(rowMeans(AllMutFreq[2:(s+1)],na.rm=T),na.rm=T) #  0.00951348
 
+
+std.error(rowMeans(TsMutFreq[2:(s+1)],na.rm=T)) #9.571699e-05
+std.error(rowMeans(Tvs.MutFreq[2:(s+1)],na.rm=T)) # 3.2152e-05
+std.error(rowMeans(AllMutFreq[2:(s+1)],na.rm=T)) #0.0001077804
+
+
 ## Ref ones are not meaningful without filtering ##
 mean(rowMeans(TsMutFreq.ref[2:(s+1)],na.rm=T),na.rm=T) # 0.06059215
 mean(rowMeans(Tvs.MutFreq.ref[2:(s+1)],na.rm=T),na.rm=T) # 0.01262301
