@@ -232,7 +232,7 @@ NT2$pos2[5:8]<-cumsum(NT2$Percent[vec])-NT2$Percent[vec]/2
 
 
 ggplot(NT,aes(x=Var1,y=Freq))+
-        geom_bar(stat="identity", color="#EE6677",fill="#EE667766",width=0.8)+
+        geom_bar(stat="identity", color=cols4[4],fill=paste0(cols4[4],"CC"),width=0.6)+
         theme_bw()+labs(x="")+
         theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
         geom_hline(yintercept=0, size=0.4, color="gray10")+
@@ -241,7 +241,7 @@ ggplot(NT,aes(x=Var1,y=Freq))+
               axis.text.y = element_text(size=14),axis.title.y = element_text(size = 14))+
         ylab(expression(paste("Over/under-represented NT (%) \n at conserved sites")))+
         theme(plot.margin=unit(c(5,5,5,20),"points"))
-ggsave("Output1A/GLM/Overrepresented.Nucleotides.in.Top5.pdf", width=5, height=4)
+ggsave("Output1A/GLM/Overrepresented.Nucleotides.in.Top5_blue.pdf", width=5, height=4)
 
 ggplot(NT,aes(x=Var1,y=Freq))+
         geom_bar(stat="identity", color="#EE6677",fill="#EE667766",width=0.8)+
@@ -319,16 +319,18 @@ write.csv(AA,"Output1A/GLM/Overrepresented.site.AA.by.gene.csv")
 codonsummary<-codonsummary %>% adorn_totals("row")
 write.csv(codonsummary, "Output1A/GLM/Overrepresented.site.codons.csv")
 
+PercentDeviates[5,1]<-"NS1"
 
-ggplot(PercentDeviates,aes(x=Gene,y=Proportion))+
-        geom_bar(stat="identity", color="#EE6677",fill="#EE667766",width=0.8)+
+ggplot(PercentDeviates,aes(x=Gene,y=Proportion*100))+
+        geom_bar(stat="identity", color=cols4[4],fill=paste0(cols4[4],"CC"),width=0.8)+
         theme_bw()+labs(x="")+
         theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
         geom_hline(yintercept=0, size=0.4, color="gray10")+
         theme(axis.text.x = element_text(size=12),
               axis.text.y = element_text(size=12),axis.title.y = element_text(size = 14))+
-        ylab(expression(paste("Over/under-represented % of conserved sites")))
-ggsave("Output1A/GLM/Overrepresented.sites.perGene.Top5.pdf", width=8, height=6)
+        ylab(expression(paste("Over/under-represented % \n  of conserved sites")))+
+        theme(plot.margin=unit(c(5,5,5,20),"points"))
+ggsave("Output1A/GLM/Overrepresented.sites.perGene.Top5_blue.pdf", width=6.8, height=5)
 
 
 # Over or under represented amino acids
@@ -378,4 +380,47 @@ DRsites_h<-data2[(data2$pos%in% dr2$NTpos),]
 # pos a t c g Syn Nonsyn Stop CpG bigAAChange        mean gene Core E1 HVR1 E2 NS1 NS2 NS3 NS4A NS4B NS5A NS5B codon ref WTAA EstimatedMF        diff
 #6347 1 0 0 0   1      0    0   0           0 0.007877798   11    0  0    0  0   0   0   0    0    0    1    0     3   a    Q  0.01142332 0.003545527
 
+data2[data2$Nonsyn==1,]
+data2[data2$CpG==1,]
+##########
 
+type<-list()
+type[[1]]<-table(data2$Nonsyn)
+type[[2]]<-table(data$Nonsyn)
+type[[3]]<-type[[1]]/sum(type[[1]])
+type[[4]]<-type[[2]]/sum(type[[2]])
+type[[5]]<-type[[3]]-type[[4]]
+TP<-as.data.frame(type[[5]]/type[[4]]*100)
+
+ggplot(TP,aes(x=Var1,y=Freq))+
+        geom_bar(stat="identity", color=cols4[4],fill=paste0(cols4[4],"CC"),width=0.6)+
+        theme_bw()+labs(x="")+
+        theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
+        geom_hline(yintercept=0, size=0.4, color="gray10")+
+        scale_x_discrete(labels=c("Syn","Nonsyn"))+
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),axis.title.y = element_text(size = 14))+
+        ylab(expression(paste("Over/under-represented type (%) \n at conserved sites")))+
+        theme(plot.margin=unit(c(5,5,5,20),"points"))
+ggsave("Output1A/GLM/Overrepresented.Type.in.Top5_blue.pdf", width=4, height=3)
+
+
+cpg<-list()
+cpg[[1]]<-table(data2$CpG)
+cpg[[2]]<-table(data$CpG)
+cpg[[3]]<-cpg[[1]]/sum(type[[1]])
+cpg[[4]]<-cpg[[2]]/sum(type[[2]])
+cpg[[5]]<-cpg[[3]]-cpg[[4]]
+CP<-as.data.frame(cpg[[5]]/cpg[[4]]*100)
+
+ggplot(CP,aes(x=Var1,y=Freq))+
+        geom_bar(stat="identity", color=cols4[4],fill=paste0(cols4[4],"CC"),width=0.5)+
+        theme_bw()+labs(x="")+
+        theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
+        geom_hline(yintercept=0, size=0.4, color="gray10")+
+        scale_x_discrete(labels=c("non-CpG","CpG"))+
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),axis.title.y = element_text(size = 14))+
+        ylab(expression(paste("Over/under-represented CpG sites (%) \n at conserved sites")))+
+        theme(plot.margin=unit(c(5,5,5,20),"points"))
+ggsave("Output1A/GLM/Overrepresented.CpG.in.Top5_blue.pdf", width=4, height=4)

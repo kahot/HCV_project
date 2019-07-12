@@ -5,41 +5,39 @@ library(zoo)
 #############
 # find the sites that are most different in mutation frequencies between the genomes
 
-# create non-filtered summary file
+#1. Create non-filtered Overview files
 
-#MergedPositions<-read.csv("Data/MergedPositionInfo.csv", stringsAsFactors = F)
+MergedPositions<-read.csv("Data/MergedPositionInfo.csv", stringsAsFactors = F)
 geno<-c("1A","1B","3A")
-#
-#HCV1A<-list.files(paste0("Output/Overview2/"),pattern="overview2.csv")
-#HCV3A<-list.files(paste0("Output3A/Overview2/"),pattern="overview2.csv")
-#HCV1B<-list.files(paste0("Output1B/Overview2/"),pattern="overview2.csv")
-#
-#for (g in 1:3){
-#        flist<-get(paste0("HCV",geno[g]))
-#        if (g==1) dir<-"Output/Overview2/"
-#        if (g==2) dir<-"Output1B/Overview2/"
-#        if (g==3) dir<-"Output3A/Overview2/"
-#        
-#        Positions<-MergedPositions[,c("merged.pos",paste0("org.pos.",geno[g]))]
-#        pos<-data.frame(merged.pos=Positions$merged.pos)
-#        for (i in 1:length(flist)){
-#                dat<-read.csv(paste0(dir,flist[i]), stringsAsFactors = F)
-#                dat<-dat[,-1]
-#                colnames(dat)[1]<-paste0("org.pos.",geno[g])
-#                
-#                dat2<-merge(Positions,dat, by=paste0("org.pos.",geno[g]),all.x=T )
-#                dat3<-merge(pos, dat2, by="merged.pos", all.x=T)
-#                
-#                fname<-substr(paste(flist[i]),start=1,stop=7)
-#                write.csv(dat3,paste0("Output_all/Overview",geno[g],"/Overview2.2/", fname, "_overview2.2.csv"))
-#        }
-#}
-#
+
+for (i in 1:3){
+        lname<-paste0("HCV",geno[i])
+        lS<-list.files(paste0("Output",geno[i],"/Overview2/"), pattern="overview2.csv")
+        assign(lname,lS)
+}
+
+for (g in 1:3){
+        flist<-get(paste0("HCV",geno[g]))
+        
+        Positions<-MergedPositions[,c("merged.pos",paste0("org.pos.",geno[g]))]
+        pos<-data.frame(merged.pos=Positions$merged.pos)
+        for (i in 1:length(flist)){
+                dat<-read.csv(paste0("Output",geno[g],"/Overview2/",flist[i]), stringsAsFactors = F, row.names = 1)
+                colnames(dat)[1]<-paste0("org.pos.",geno[g])
+                
+                dat2<-merge(Positions,dat, by=paste0("org.pos.",geno[g]),all.x=T )
+                dat3<-merge(pos, dat2, by="merged.pos", all.x=T)
+                
+                fname<-substr(paste(flist[i]),start=1,stop=7)
+                write.csv(dat3,paste0("Output_all/Overview",geno[g],"/Overview2.2/", fname, "_overview2.2.csv"))
+        }
+}
 
 
-#### create a transition mutation summary (ref) of Overview2.2 (unfiltered) ###
 
-#create merged metadata since some are missing from "Output_all/Ts_summary_metadata.1A.csv"
+#2. Create transition mutation summary (ref) files of Overview2.2 (unfiltered) 
+
+#2.1 Create merged metadata since some are missing from "Output_all/Ts_summary_metadata.1A.csv"
 
 filename<-c("D75002","D75046", "D75007")
 Metadata<-list()
@@ -72,10 +70,11 @@ colnames(merged.meta)[2]<-"codon"
 
 write.csv(merged.meta, "Output_all/Unfiltered/merged.metadata.csv")
 
+#merged.meta<-read.csv("Output_all/Unfiltered/merged.metadata.csv",stringsAsFactors = F,row.names = 1)
 
 
-## 1) combine all mutation frequency regardless of Maj==Ref or not
-for (f in 1:3){
+## 1) combine all "minor variant" frequency tables regardless of Maj==Ref or not
+for (f in 2:3){
         flist<-list.files(paste0("Output_all/Overview",geno[f],"/Overview2.2/"),pattern="overview2.2.csv")
         
         MutFreq_Ts<-list()
@@ -87,7 +86,7 @@ for (f in 1:3){
                 dat[low_reads,c(7:ncol(dat))]<-NA
                 
                 #get the Ts. mutation frequency
-                MutFreq_Ts[[i]]<-dat[,c("merged.pos","freq.Ts.ref")] 
+                MutFreq_Ts[[i]]<-dat[,c("merged.pos","freq.Ts")] 
                 
                 filename<-substr(paste0(flist[i]),start=1,stop=7)
                 names(MutFreq_Ts)[i]<-filename
@@ -98,32 +97,34 @@ for (f in 1:3){
         
         Ts<-MutFreq_Ts%>% purrr::reduce(full_join, by='merged.pos')
         Ts$mean<-rowMeans(Ts[2:ncol(Ts)],na.rm=T)
-        #write.csv(Ts,paste0("Output_all/Unfiltered/Ts.ref_",geno[f],".csv"))
+        write.csv(Ts,paste0("Output_all/Unfiltered/Ts.MinorVarient_",geno[f],".csv"))
         s<-length(flist)
         Ts2<-Ts[,c(1,s+2)]
         colnames(Ts2)[2]<-paste0("mean.",geno[f]) 
         Ts2<-merge(merged.meta,Ts2,by="merged.pos")
-        write.csv(Ts2,paste0("Output_all/Unfiltered/Ts.ref_Mean_metadata.",geno[f],".csv"))
+        write.csv(Ts2,paste0("Output_all/Unfiltered/Ts.MinorVariant_Mean_metadata.",geno[f],".csv"))
 }
+
+
+
 
 #Combine the mean mut freq of 3 genotypes into 1 table.
 
-Summary<-read.csv(paste0("Output_all/Unfiltered/Ts.ref_Mean_metadata.1A.csv"),stringsAsFactors = F)
-Summary<-Summary[,-1]
+Summary<-read.csv(paste0("Output_all/Unfiltered/Ts.MinorVariant_Mean_metadata.1A.csv"),stringsAsFactors = F, row.names = 1)
 
 for (f in 2:3){
-        d<-read.csv(paste0("Output_all/Unfiltered/Ts.ref_Mean_metadata.",geno[f],".csv"),stringsAsFactors = F)
+        d<-read.csv(paste0("Output_all/Unfiltered/Ts.MinorVariant_Mean_metadata.",geno[f],".csv"),stringsAsFactors = F)
         d<-d[,c(2,ncol(d))]
         Summary<-merge(Summary,d,by="merged.pos")
 }
 
 
-write.csv(Summary,"Output_all/Unfiltered/Ts.ref_Mean_3genotypes.csv")
+write.csv(Summary,"Output_all/Unfiltered/Ts.MinorVariant_Mean_3genotypes.csv")
 
 
 
-range(Summary$mean.1A, na.rm=T)
-range(Summary$mean.3A, na.rm=T)
+range(Summary$mean.1A, na.rm=T) #[1] 0.00000000 0.07634814
+range(Summary$mean.3A, na.rm=T) #[1] 0.0000000 0.1590753
 
 
 
@@ -233,4 +234,5 @@ for (f in 2:3){
 
 
 write.csv(Summary.diff,"Output_all/Unfiltered/Ts.Diff_Mean_3genotypes.csv")
+
 
