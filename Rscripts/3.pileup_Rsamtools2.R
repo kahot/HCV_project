@@ -5,7 +5,6 @@ source("Rscripts/pileupFreq.R")
 
 #number of sampels to process
 bamfiles<-list.files("Output1A/bam2/",pattern="bam$")
-
 for (i in 1:length(bamfiles)){
         bam<-bamfiles[i]
         index<-paste0(paste0("Output1A/bam2/",bam),'.bai')
@@ -21,7 +20,4 @@ for (i in 1:length(bamfiles)){
         write.csv(summary, file=paste0("Output1A/CSV/",file.name,".csv",collapse=""))
 
 }
-
-
-
 

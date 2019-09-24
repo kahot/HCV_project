@@ -328,3 +328,22 @@ p2<-ggplot(effects2, aes(factor(factor),percent, fill =genotype)) +geom_bar(stat
         labs(x="", y="Estimated effects (%)")
 
 ggsave("Output_all/GLM/Compare_effects_glm.mod2.2.pdf", plot=p2, width = 10, height =6 )
+
+
+#Test
+library(MASS)
+library(DescTools)
+
+eff1A<-effects2[effects2$genotype=="1A",c("factor","effect")]
+
+eff3A<-effects2[effects2$genotype=="3A",c("factor","effect")]
+#chisquare test
+eff.table<-eff1A
+row.names(eff.table)<-eff.table$factor 
+eff.table$Geno1B<-eff3A$effect
+colnames(eff.table)[2]<-"Geno1A"
+eff.table<-eff.table[,-1]
+
+chisq.test(eff.table)
+#X-squared = 0.00069968, df = 16, p-value = 1
+

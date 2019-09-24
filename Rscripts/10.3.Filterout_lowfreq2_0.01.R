@@ -10,7 +10,7 @@ source("Rscripts/baseRscript.R")
 
 
 HCVFiles_overview3<-list.files("Output1A/Overview3/",pattern="overview3.csv")
-
+s<-length(HCVFiles_overview3)
 ##### read the summary mutation frequency files before removing the sites with >66% NA
 TsMutFreq  <-read.csv("Output1A/MutFreq.filtered/Ts_MutFreq_1A_all.csv",stringsAsFactors = F,row.names=1)
 #remove the sites before the coding region
@@ -37,7 +37,7 @@ mean(Ts_zero$mean) #0.002039763
 
 # Ts 
 Ts$mean<-rowMeans(Ts[2:(s+1)], na.rm=T)
-
+mean(Ts$mean)
 
 write.csv(Ts_NA,   "Output1A/Q35Compare/Summary_Ts_NA0.01.csv")
 write.csv(Ts_zero, "Output1A/Q35Compare/Summary_Ts_zero0.01.csv")
@@ -52,9 +52,9 @@ n<-data.frame("pos"=c(342:endnuc))
 SNPFreqs<-merge(n,SNPFreq,by="pos",all.x=T)
 pdf(paste0("Output1A/Q35Compare/Ts.MutFreq.NAreplaced0.01.pdf"),width=15,height=7.5)
 plot(mean~pos, data=SNPFreqs,t="n",log='y',yaxt='n',xlab='Genome position (H77)',ylab="Average transition mutation frequency",
-     main="Transition muttaion frequency ",ylim=c(0.0001,0.1),xlim=c(340,8500))
-eaxis(side = 2, at = 10^((-1):(-(4))), cex=2)
-for(i in 2:4){abline(h = 1:10 * 10^(-i), col = "gray80")}
+     main="Transition mutaion frequency ",ylim=c(0.001,0.5),xlim=c(340,8500))
+eaxis(side = 2, at = 10^((0):(-(3))), cex=2)
+for(i in 0:3){abline(h = 1:10 * 10^(-i), col = "gray90")}
 points(mean~pos, data=SNPFreqs,pch=20,col="#EE667766",cex=0.5)
 
 #add rolling average

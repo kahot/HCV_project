@@ -3,20 +3,17 @@ library(dplyr)
 source("Rscripts/baseRscript.R")
 
 #Specify the Genotype
-geno<-"3A"
-
-
-
+geno<-"1B"
 
 
 #get the file name
-HCVFiles_SeqData<-list.files(paste0("Output",geno,"/SeqData/"),pattern="SeqData")
+HCVFiles_SeqData<-list.files(paste0("Output",geno,"/SeqData2/"),pattern="SeqData")
 
 Overview<-list()
 for (i in 1:length(HCVFiles_SeqData)){   
         id<-substr(paste(HCVFiles_SeqData[i]),start=9,stop=15)
         print(id)
-        OverviewDF<-read.csv(paste0("Output",geno,"/SeqData/",HCVFiles_SeqData[i]),stringsAsFactors=FALSE)
+        OverviewDF<-read.csv(paste0("Output",geno,"/SeqData2/",HCVFiles_SeqData[i]),stringsAsFactors=FALSE)
         OverviewDF<-OverviewDF[,-1]
                 
         TypeOfSite<-c()
@@ -76,7 +73,7 @@ for (i in 1:length(HCVFiles_SeqData)){
 
 ## 2. Using 12 different Mutation Frequencies baed on from/to nucleotides
 
-mutrates<-read.csv("~/programs/HCV/Data/Geller.mutation.rates.csv",stringsAsFactors=FALSE)
+mutrates<-read.csv("Data/Geller.mutation.rates.csv",stringsAsFactors=FALSE)
 
 
 Overview_summary<-list()

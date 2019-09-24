@@ -90,7 +90,7 @@ for (i in 1:length(MergeFiles)){
                 SeqData$freq.Ts.ref[k]<-MutNum2/SeqData$TotalReads[k]
                 
                 
-                #mutation frequencies of all ransversion mutataions
+                #mutation frequencies of all transversion mutataions
                 if (SeqData$MajNt[k]=="a"|SeqData$MajNt[k]=='g'){
                         TrvMutNum<-SeqData[k,"c"]+SeqData[k,"t"]}
                 if (SeqData$MajNt[k]=="c"|SeqData$MajNt[k]=="t"){

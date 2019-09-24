@@ -1,4 +1,4 @@
-#Beta regression preparation:
+#GLM/Beta regression preparation:
 
 library(tidyverse)
 library(zoo)
@@ -11,7 +11,7 @@ source("Rscripts/baseRscript.R")
 ####################
 
 #Read data file
-GlmData   <-read.csv("Output1A/GLM/GlmData_Ts_FilteredData.csv", row.names = 1, stringsAsFactors = F)
+BetaReg   <-read.csv("Output1A/GLM/GlmData_Ts_FilteredData.csv", row.names = 1, stringsAsFactors = F)
 
 #1. Format the data:
 ### addd gene annotation info for all genes
@@ -26,29 +26,32 @@ n<-data.frame(pos=342:(length(gene)+341))
 g<-cbind(n,gene)
 
 
-colnames(GlmData)[1]<-"pos"
-glmData<-merge(GlmData, g, by ="pos")
+colnames(BetaReg)[1]<-"pos"
+betar<-merge(BetaReg, g, by ="pos")
 
 for (i in 2:12){
         gname<-paste(genes$Gene[i])
-        n<-ncol(glmData)
-        glmData[,n+1]<-0
-        colnames(glmData)[n+1]<-gname
-        glmData[glmData$gene==i,n+1]<-1
+        n<-ncol(betar)
+        betar[,n+1]<-0
+        colnames(betar)[n+1]<-gname
+        betar[betar$gene==i,n+1]<-1
 }
-co<-which(colnames(glmData)=="NS1(P7)" )
-colnames(glmData)[co]<-"NS1"
+co<-which(colnames(betar)=="NS1(P7)" )
+colnames(betar)[co]<-"NS1"
 
-write.csv(glmData,paste0("Output1A/GLM/GlmdataFull.Ts.FilteredData.csv"))
+write.csv(betar,paste0("Output1A/GLM/BetaRegFull.Ts.FilteredData.csv"))
 
+###
+
+betar<-read.csv("Output1A/GLM/BetaRegFull.Ts.FilteredData.csv", stringsAsFactors = F, row.names = 1)
 
 ################
 #2. run GLM
 mod.g1 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
-                        Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B, data = glmData[glmData$Stop == 0,])
+                        Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B, data = betar[betar$Stop == 0,])
 summary(mod.g1)
 
-
+#using the new data = same results!
 #              Estimate Std. Error  z value Pr(>|z|)    
 #(Intercept) -4.4737177  0.0229838 -194.647  < 2e-16 ***
 #t1           0.1157091  0.0208632    5.546 2.92e-08 ***
@@ -70,6 +73,38 @@ summary(mod.g1)
 #t1:Nonsyn1  -0.1860138  0.0268162   -6.937 4.02e-12 ***
 #c1:Nonsyn1  -0.1431568  0.0277536   -5.158 2.49e-07 ***
 #g1:Nonsyn1   0.0929057  0.0286821    3.239   0.0012 ** 
+
+
+#Q35 -ORIGINAL
+#             Estimate Std. Error  z value Pr(>|z|)    
+#(Intercept) -4.4737177  0.0229838 -194.647  < 2e-16 ***
+#t            0.1157091  0.0208632    5.546 2.92e-08 ***
+#c           -0.5323171  0.0205090  -25.955  < 2e-16 ***
+#g           -0.7220995  0.0229500  -31.464  < 2e-16 ***
+#CpG         -0.0725060  0.0134435   -5.393 6.91e-08 ***
+#Nonsyn      -0.7585679  0.0223505  -33.940  < 2e-16 ***
+#bigAAChange -0.1249080  0.0140548   -8.887  < 2e-16 ***
+#Core        -0.2152590  0.0240976   -8.933  < 2e-16 ***
+#E1           0.0390887  0.0227549    1.718   0.0858 .  
+#HVR1         0.2373264  0.0482918    4.914 8.90e-07 ***
+#E2           0.0859036  0.0197335    4.353 1.34e-05 ***
+#NS1          0.0714742  0.0330309    2.164   0.0305 *  
+#NS2          0.0911630  0.0218428    4.174 3.00e-05 ***
+#NS3          0.0035818  0.0179292    0.200   0.8417    
+#NS4A        -0.0542810  0.0372726   -1.456   0.1453    
+#NS5A        -0.0003067  0.0190949   -0.016   0.9872    
+#NS5B        -0.1615474  0.0207384   -7.790 6.71e-15 ***
+#t:Nonsyn    -0.1860138  0.0268162   -6.937 4.02e-12 ***
+#c:Nonsyn    -0.1431568  0.0277536   -5.158 2.49e-07 ***
+#g:Nonsyn     0.0929057  0.0286821    3.239   0.0012 ** 
+
+#hi coefficients (precision model with identity link):
+#      Estimate Std. Error z value Pr(>|z|)    
+#(phi)  1145.82      18.81   60.92   <2e-16 ***
+#Type of estimator: ML (maximum likelihood)
+#Log-likelihood: 3.795e+04 on 21 Df
+#Pseudo R-squared: 0.6124
+#Number of iterations: 36 (BFGS) + 3 (Fisher scoring)
 
 
 #remove the ns genes: NS3, and NS5A        
@@ -116,7 +151,15 @@ summary(mod.g2.2)
 #t:Nonsyn    -0.18616    0.02682   -6.942 3.86e-12 ***
 #c:Nonsyn    -0.14228    0.02775   -5.127 2.94e-07 ***
 #g:Nonsyn     0.09324    0.02868    3.251  0.00115 ** 
-        
+
+#Phi coefficients (precision model with identity link):
+#        Estimate Std. Error z value Pr(>|z|)    
+#(phi)  1145.80      18.81   60.92   <2e-16 ***
+#
+#Type of estimator: ML (maximum likelihood)
+#Log-likelihood: 3.795e+04 on 19 Df
+#Pseudo R-squared: 0.6125
+#Number of iterations: 34 (BFGS) + 3 (Fisher scoring)         
 
 AIC(mod.g1,mod.g2,mod.g2.2)
 #         df       AIC
@@ -141,7 +184,7 @@ write.csv(coef2,"Output1A/GLM/BetaReg_mod.g2_Ts.Q35.csv")
 GlmData1<-glmdata2[[2]]
 
 mod.g1 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
-                          Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B, data = glmData[glmData$Stop == 0,])
+                          Core +E1 +HVR1++E2 +NS1 +NS2+NS3 +NS4A+NS5A+NS5B, data = betar[betar$Stop == 0,])
 summary(mod.g1)
 
 #Ts_NA Q35
@@ -232,19 +275,77 @@ modcoef2<-sum.g2$coefficients
 coef2<-modcoef2[[1]]
 write.csv(coef2,"Output1A/GLM/BetaReg_mod.g2_Ts_NA.Q35.csv")
 
+### plot
 
+set.seed(123)
+plot(mod.g2, which=1:4, type="pearson")
+plot(mod.g2, which=5, type="deviance",sub.caption="")
+plot(mod.g2, which=1, type="deviance",sub.caption="")
+
+#### adding parameter estimation for precisicon factors
+
+G2_2 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
+                          Core +E1 +HVR1++E2 +NS1 +NS2 +NS4A +NS5B | Nonsyn, data = betar[betar$Stop == 0,])
+summary(G2_2)
+#Phi coefficients (precision model with log link):
+#            Estimate Std. Error z value Pr(>|z|)    
+#(Intercept)  6.45792    0.02856  226.13   <2e-16 ***
+#Nonsyn       1.07249    0.03483   30.79   <2e-16 ***
+
+library(lmtest)
+lrtest(mod.g2,G2_2)
+#Model 1: mean ~ t + c + g + CpG + Nonsyn + bigAAChange + Core + E1 + HVR1 + 
+#         E2 + NS1 + NS2 + NS4A + NS5B + t:Nonsyn + c:Nonsyn + g:Nonsyn
+#Model 2: mean ~ t + c + g + CpG + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn + 
+#        bigAAChange + Core + E1 + HVR1 + +E2 + NS1 + NS2 + NS4A + 
+#        NS5B | Nonsyn
+# #Df LogLik Df Chisq Pr(>Chisq)    
+#1  19  37954                        
+#2  20  38448  1   987  < 2.2e-16 ***
+
+AIC(mod.g2, G2_2)
+#       df       AIC
+#mod.g2 19 -75870.06
+#G2_2   20 -76855.07
+
+G2_loglog <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
+                             Core +E1 +HVR1++E2 +NS1 +NS2 +NS4A +NS5B, data = betar[betar$Stop == 0,], link="loglog")
+
+G2_loglog2 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
+                             Core +E1 +HVR1++E2 +NS1 +NS2 +NS4A +NS5B|Nonsyn, data = betar[betar$Stop == 0,], link="loglog")
+
+G2_log <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
+                        Core +E1 +HVR1++E2 +NS1 +NS2 +NS4A +NS5B, data = betar[betar$Stop == 0,], link="log")
+
+summary(G2_loglog)
+AIC(mod.g2, G2_loglog,G2_loglog2,G2_log)
+#           df       AIC
+#mod.g2     19 -75870.06
+#G2_loglog  19 -75843.22
+#G2_loglog2 20 -76847.40
+#G2_log     19 -75870.80
+
+plot(abs(residuals(mod.g2, type="response")), + abs(residuals(G2_log, type="response")))
+abline(0,1,lty=2)
+
+
+### apply different link functions:
+
+sapply(c("logit","probit","cloglog","cauchit","loglog"), function(x) logLik(update(mod.g2, link=x)))
+#   logit   probit  cloglog  cauchit   loglog 
+#37954.03 37946.75 37954.22 37970.10 37940.61
 
 #######################################################################################################
 #######################################################################################################
 
 
 #3. zero replaced 
-glmData<-glmdata2[[3]]
+betar<-glmdata2[[3]]
 
 ################
 
 mod.g1 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
-                          Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B, data = glmData[glmData$Stop == 0,])
+                          Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B, data = betar[betar$Stop == 0,])
 summary(mod.g1)
 
 #             Estimate Std. Error  z value Pr(>|z|) 

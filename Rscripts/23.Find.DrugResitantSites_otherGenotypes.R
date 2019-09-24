@@ -8,18 +8,19 @@ drsites<-read.csv("Data/HCV_drugresistance_Geno.csv",stringsAsFactors = F)
 geno1A<-read.csv("Output_all/Ts_summary_metadata.1A.csv",stringsAsFactors = F)
 geno1A<-geno1A[c(1:9410),-1]
 
+#attach the original position info for all genotypes
 for (i in 1:nrow(drsites)){
         drsites$pos.1A[i]<-geno1A$org.pos.1A[which(geno1A$merged.pos==drsites$merged.pos[i])]
         drsites$pos.1B[i]<-geno1A$org.pos.1B[which(geno1A$merged.pos==drsites$merged.pos[i])]
         drsites$pos.3A[i]<-geno1A$org.pos.3A[which(geno1A$merged.pos==drsites$merged.pos[i])]
 }
 
-
+colors=c("#44AA99","#0077BB","#CC6677" )
 #########
 geno<-c("1A","1B","3A")
-j=2
 for (j in 1:length(geno)){
         HCVFiles<-list.files(paste0("Output",geno[j],"/Overview2/"), pattern="overview2.csv")
+        
         dr.sites<-list()
         diff<-list()
         diff.count<-list()
@@ -35,43 +36,42 @@ for (j in 1:length(geno)){
         }
         
         for (i in 1:length(HCVFiles)){ 
-                df<-read.csv(paste0("Output",geno[j],"/Overview2/",HCVFiles[i]),stringsAsFactors=FALSE)
-                df<-df[,-1]
+                df<-read.csv(paste0("Output",geno[j],"/Overview2/",HCVFiles[i]),stringsAsFactors=FALSE, row.names = 1)
                 dname<-substr(paste(HCVFiles[i]),start=1,stop=7)
                 dr<-DR
                 cname<-paste0("pos.",geno[j])
                 DRsites<-df[df$pos %in% dr[,cname],]
 
+                #count the number of samples fixed with the RAVs
                 dr$obs<-0
                 for (k in 1:nrow(dr)){
                         pos<-dr[k,cname]
                         if (is.na(DRsites$MajNt[DRsites$pos==pos])|is.na(DRsites$ref[DRsites$pos==pos])) next
                         if (DRsites$MajNt[DRsites$pos==pos]!=DRsites$ref[DRsites$pos==pos]){
                                 if (dr$Type[k]=="Ts") {mutnt<-transition(DRsites$ref[DRsites$pos==pos]) 
-                                if (DRsites$MajNt[DRsites$pos==pos]==mutnt) dr$obs[k]<-1} 
+                                        if (DRsites$MajNt[DRsites$pos==pos]==mutnt) dr$obs[k]<-1} 
                                 if (dr$Type[k]=='Tv1') {mutnt<-transv1(DRsites$ref[DRsites$pos==pos])
-                                if (DRsites$MajNt[DRsites$pos==pos]==mutnt) dr$obs[k]<-1}
+                                        if (DRsites$MajNt[DRsites$pos==pos]==mutnt) dr$obs[k]<-1}
                                 if (dr$Type[k]=='Tv2') {mutnt<-transv2(DRsites$ref[DRsites$pos==pos])
-                                if (DRsites$MajNt[DRsites$pos==pos]==mutnt) dr$obs[k]<-1} 
-                                
+                                        if (DRsites$MajNt[DRsites$pos==pos]==mutnt) dr$obs[k]<-1} 
                                 if (dr$Type[k]=='Tv') {mutnt1<-transv1(DRsites$ref[DRsites$pos==pos])
-                                mutnt2<-transv2(DRsites$ref[DRsites$pos==pos])
-                                if (DRsites$MajNt[DRsites$pos==pos]==mutnt1|DRsites$MajNt[DRsites$pos==pos]==mutnt2) dr$obs[k]<-1  }    
+                                        mutnt2<-transv2(DRsites$ref[DRsites$pos==pos])
+                                        if (DRsites$MajNt[DRsites$pos==pos]==mutnt1|DRsites$MajNt[DRsites$pos==pos]==mutnt2) dr$obs[k]<-1  }    
                                 if (dr$Type[k]=='Ts,Tv1') {mutnt1<-transition(DRsites$ref[DRsites$pos==pos])
-                                mutnt2<-transv1(DRsites$ref[DRsites$pos==pos])    
-                                if (DRsites$MajNt[DRsites$pos==pos]==mutnt1|DRsites$MajNt[DRsites$pos==pos]==mutnt2) dr$obs[k]<-1 }  
+                                        mutnt2<-transv1(DRsites$ref[DRsites$pos==pos])    
+                                        if (DRsites$MajNt[DRsites$pos==pos]==mutnt1|DRsites$MajNt[DRsites$pos==pos]==mutnt2) dr$obs[k]<-1 }  
                                 if (dr$Type[k]=='Ts,Tv2') {mutnt1<-transition(DRsites$ref[DRsites$pos==pos])
-                                mutnt2<-transv2(DRsites$ref[DRsites$pos==pos])    
-                                if (DRsites$MajNt[DRsites$pos==pos]==mutnt1|DRsites$MajNt[DRsites$pos==pos]==mutnt2) dr$obs[k]<-1 }     
+                                        mutnt2<-transv2(DRsites$ref[DRsites$pos==pos])    
+                                        if (DRsites$MajNt[DRsites$pos==pos]==mutnt1|DRsites$MajNt[DRsites$pos==pos]==mutnt2) dr$obs[k]<-1 }     
                                 if (dr$Type[k]=='Ts,Tv') dr$obs[k]<-1
                         }
                 }
                 
-                
+                #store the observation number in a list
                 diff.count[i]<-sum(dr$obs==1)
                 names(diff.count)[i]<-dname
                 
-                
+                #obtain the mutation freq.
                 dr$freq<-""
                 for (k in 1:nrow(dr)){
                         if (dr$Type[k]=='Tv1')    dr$freq[k]<-DRsites$freq.transv1.ref[DRsites$pos==dr[k,cname]]
@@ -83,13 +83,14 @@ for (j in 1:length(geno)){
                         if (dr$Type[k]=='Ts,Tv')  dr$freq[k]<-DRsites$freq.mutations.ref[DRsites$pos==dr[k,cname]]
                 }
                 
-                write.csv(dr, paste0("Output_all/DR/",geno[j],"/DRsites.",dname,".csv"))
+                #write.csv(dr, paste0("Output_all/DR/",geno[j],"/DRsites.",dname,".csv"))
                 dr$freq<-as.numeric(dr$freq)
+                # fixed to RAV 
                 diff[[i]]<-dr[,c("ID","obs")]
                 names(diff)[i]<-dname
+                #mut.freq
                 DR_mutfreq[[i]]<-dr[,c("ID","freq")]
                 names(DR_mutfreq)[i]<-dname
-                
         }
         
         for (i in 1:length(DR_mutfreq)) {
@@ -112,16 +113,13 @@ for (j in 1:length(geno)){
         ns5bn<-nrow(dr[dr$Gene=="NS5B",])
         
         
-        #count the number of patients fixed with alternate NT
-        
+        #count the number of patients fixed with RAV (%)
         DR_diff$total<-apply(DR_diff[2:(s+1)],1,sum, na.rm=T)
-        DR_diff$Percent<-DR_diff$total/s*100
-        DR_diff$Per2<-format(round(DR_diff$Percent, 1), nsmall = 1)
+        DR_diff$Percent<-format(round(DR_diff$total/s*100, 1), nsmall=1)
         
         
         
         #create a figure
-        colors=c("#44AA99","#0077BB","#CC6677" )
         pdf(paste0("Output_all/DR/DrugResi.allele.freq_",geno[j],".pdf"), height = 8, width = 15.5)
         ymin <- -5
         plot(0, type = "n", xlim = c(1, nrow(DR_MutFreq)), ylim = c(ymin, 0), axes = FALSE, ylab = "Frequency of RAVs", 
@@ -158,9 +156,9 @@ for (j in 1:length(geno)){
         #mtext(side = 3, at = 1:nrow(DR_MutFreq), text = paste(DR_diff$total), cex = .8)
         
         for (i in 1:nrow(dr)){
-                if (dr$Type[i]=='Ts') mtext(side = 3, at = i , text = paste(DR_diff$Per2[i]),col="#117733",cex = .6,las=2)
-                if (dr$Type[i]=='Tv1'|dr$Type[i]=='Tv2'|dr$Type[i]=='Tv') mtext(side = 3, at = i, text = paste(DR_diff$Per2[i]),col="#EE7733",cex = .6,las=2)
-                if (dr$Type[i]=='Ts,Tv2'|dr$Type[i]=='Ts,Tv') mtext(side = 3, at = i, text = paste(DR_diff$Per2[i]),col="#0077BB",cex = .6,las=2)
+                if (dr$Type[i]=='Ts') mtext(side = 3, at = i , text = paste(DR_diff$Percent[i]),col="#117733",cex = .6,las=2)
+                if (dr$Type[i]=='Tv1'|dr$Type[i]=='Tv2'|dr$Type[i]=='Tv') mtext(side = 3, at = i, text = paste(DR_diff$Percent[i]),col="#EE7733",cex = .6,las=2)
+                if (dr$Type[i]=='Ts,Tv2'|dr$Type[i]=='Ts,Tv') mtext(side = 3, at = i, text = paste(DR_diff$Percent[i]),col="#0077BB",cex = .6,las=2)
         }
                                                                                   
         mtext(side = 1, at = 1:nrow(DR_MutFreq), text = paste(dr$ID), las=2,padj=0, cex = .8)

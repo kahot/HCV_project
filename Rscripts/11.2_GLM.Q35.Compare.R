@@ -1,4 +1,4 @@
-#Beta regression preparation:
+#GLM/Beta regression preparation:
 
 library(tidyverse)
 library(zoo)
@@ -11,7 +11,17 @@ source("Rscripts/baseRscript.R")
 ####################
 
 #Read data file
-GlmData   <-read.csv("Output1A/GLM/GlmData_Ts_FilteredData.csv", row.names = 1, stringsAsFactors = F)
+GlmData   <-read.csv("Output1A/GLM/GlmData_Ts.csv", row.names = 1)
+GlmData.na<-read.csv("Output1A/GLM/GlmData_Ts_NA.csv", row.names = 1)
+GlmData.0 <-read.csv("Output1A/GLM/GlmData_Ts_zero.csv", row.names = 1)
+
+glmdata<-list()
+glmdata[[1]]<-GlmData
+glmdata[[2]]<-GlmData.na
+glmdata[[3]]<-GlmData.0
+names(glmdata)[1]<-"Ts"
+names(glmdata)[2]<-"Ts_NA"
+names(glmdata)[2]<-"Ts_zero"
 
 #1. Format the data:
 ### addd gene annotation info for all genes
@@ -25,37 +35,45 @@ for (i in 2:12){
 n<-data.frame(pos=342:(length(gene)+341))
 g<-cbind(n,gene)
 
+glmdata2<-list()
+for (k in 1:length(glmdata)){
+        GlmData1<-glmdata[[k]]
+        colnames(GlmData1)[1]<-"pos"
+        glmData<-merge(GlmData1, g, by ="pos")
+        
+        for (i in 2:12){
+                gname<-paste(genes$Gene[i])
+                n<-ncol(glmData)
+                glmData[,n+1]<-0
+                colnames(glmData)[n+1]<-gname
+                glmData[glmData$gene==i,n+1]<-1
+        }
 
-colnames(GlmData)[1]<-"pos"
-glmData<-merge(GlmData, g, by ="pos")
-
-for (i in 2:12){
-        gname<-paste(genes$Gene[i])
-        n<-ncol(glmData)
-        glmData[,n+1]<-0
-        colnames(glmData)[n+1]<-gname
-        glmData[glmData$gene==i,n+1]<-1
+        co<-which(colnames(glmData)=="NS1(P7)" )
+        colnames(glmData)[co]<-"NS1"
+        
+        glmdata2[[k]]<-glmData
+        names(glmdata2)[k]<-names(glmdata)[k]
+        #write.csv(glmData,paste0("Output1A/GLM/GlmdataFull.",names(glmdata)[k],".Q35.csv"))
 }
-co<-which(colnames(glmData)=="NS1(P7)" )
-colnames(glmData)[co]<-"NS1"
-
-write.csv(glmData,paste0("Output1A/GLM/GlmdataFull.Ts.FilteredData.csv"))
-
 
 ################
-#2. run GLM
+#2. run GLM for each dataset
+
+# 2.1  Ts.Q35
+glmData<-glmdata2[[1]]
 mod.g1 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
                         Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B, data = glmData[glmData$Stop == 0,])
 summary(mod.g1)
 
-
-#              Estimate Std. Error  z value Pr(>|z|)    
+#nofilter Q35
+#             Estimate Std. Error  z value Pr(>|z|)    
 #(Intercept) -4.4737177  0.0229838 -194.647  < 2e-16 ***
-#t1           0.1157091  0.0208632    5.546 2.92e-08 ***
-#c1          -0.5323171  0.0205090  -25.955  < 2e-16 ***
-#g1          -0.7220995  0.0229500  -31.464  < 2e-16 ***
+#t            0.1157091  0.0208632    5.546 2.92e-08 ***
+#c           -0.5323171  0.0205090  -25.955  < 2e-16 ***
+#g           -0.7220995  0.0229500  -31.464  < 2e-16 ***
 #CpG         -0.0725060  0.0134435   -5.393 6.91e-08 ***
-#Nonsyn1     -0.7585679  0.0223505  -33.940  < 2e-16 ***
+#Nonsyn      -0.7585679  0.0223505  -33.940  < 2e-16 ***
 #bigAAChange -0.1249080  0.0140548   -8.887  < 2e-16 ***
 #Core        -0.2152590  0.0240976   -8.933  < 2e-16 ***
 #E1           0.0390887  0.0227549    1.718   0.0858 .  
@@ -67,10 +85,9 @@ summary(mod.g1)
 #NS4A        -0.0542810  0.0372726   -1.456   0.1453    
 #NS5A        -0.0003067  0.0190949   -0.016   0.9872    
 #NS5B        -0.1615474  0.0207384   -7.790 6.71e-15 ***
-#t1:Nonsyn1  -0.1860138  0.0268162   -6.937 4.02e-12 ***
-#c1:Nonsyn1  -0.1431568  0.0277536   -5.158 2.49e-07 ***
-#g1:Nonsyn1   0.0929057  0.0286821    3.239   0.0012 ** 
-
+#t:Nonsyn    -0.1860138  0.0268162   -6.937 4.02e-12 ***
+#c:Nonsyn    -0.1431568  0.0277536   -5.158 2.49e-07 ***
+#g:Nonsyn     0.0929057  0.0286821    3.239   0.0012 ** 
 
 #remove the ns genes: NS3, and NS5A        
 mod.g2 <- update(mod.g1, ~. -NS3 - NS5A)

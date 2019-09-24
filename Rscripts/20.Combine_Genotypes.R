@@ -10,11 +10,11 @@ library(purrr)
 geno<-c("1A","1B","3A")
 # 1) Create merged overview files for 3 genotyes (.overview4.csv)
 
-refs<-read.dna(paste0("Data/HCV_3refseq2.fasta"), format = "fasta",as.character=TRUE)
+refs<-read.dna("Data/HCV_3GenoRef.fasta", format = "fasta",as.character=TRUE)
 
 Seq3A<-as.character(refs[[1]])
-Seq1B<-as.character(refs[[2]])
-Seq1A<-as.character(refs[[3]])
+Seq1B<-as.character(refs[[3]])
+Seq1A<-as.character(refs[[2]])
 
 for (g in 1:length(geno)){
         nuc<-get(paste0("Seq",geno[g]))
@@ -56,12 +56,12 @@ for (f in 1:3){
                 dat3<-merge(pos, dat2, by="merged.pos", all.x=T)
                 
                 fname<-substr(paste(flist[i]),start=1,stop=7)
-                #write.csv(dat3,paste0("Output_all/Overview",geno[f],"/", fname, "_overview4.csv"))
+                write.csv(dat3,paste0("Output_all/Overview",geno[f],"/", fname, "_overview4.csv"))
         }
 }
 
 
-### 2) create a transition mutation summary ###
+### 2) create a transition mutation summary (filtered data (mut req<0.2)) ###
 M<-read.csv("Output_all/merged.metadata.csv", stringsAsFactors = F)
 M<-M[,-1]
 for (f in 1:3){
@@ -80,10 +80,10 @@ for (f in 1:3){
     
     Ts<-MutFreq_Ts%>% purrr::reduce(full_join, by='merged.pos')
     Ts$mean<-rowMeans(Ts[2:ncol(Ts)],na.rm=T)
-    write.csv(Ts,paste0("Output_all/Ts_summary_",geno[f],".csv"))
+    write.csv(Ts,paste0("Output_all/Filtered/Ts_summary_",geno[f],".csv"))
     s<-length(flist)
     Ts2<-Ts[,c(1,s+2)]
     Ts2<-merge(M,Ts2,by="merged.pos")
-    write.csv(Ts2,paste0("Output_all/Ts_summary_metadata.",geno[f],".csv"))
+    write.csv(Ts2,paste0("Output_all/Filtered/Ts_summary_metadata.",geno[f],".csv"))
 }
 

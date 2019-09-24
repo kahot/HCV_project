@@ -40,6 +40,8 @@ for (j in 1:length(FstList)){
 geno<-c("1A","1B","3A")
 
 
+colorRampBlue <- colorRampPalette(c("white", "steelblue1", "blue3"))
+
 for (i in 1:length(FstList2)){
         dat<-FstList2[[i]]
         dat<-dat[,4:6]
@@ -55,20 +57,18 @@ for (i in 1:length(FstList2)){
         #}
         #dat$Fst<-as.numeric(dat$Fst)
         dat$Fst<-as.numeric(format(round(dat$Fst,4),  nsmall=4))
-        grep("D75030", dat2$Sample1)
-        grep("D75030", dat2$Sample2)
         dat2<-dat[!is.na(dat$Fst),]
         dat2<-dat2[dat2$Sample1!="D75030"&dat2$Sample2!="D75030",]
         title<-paste0("Genotype ",substr(names(FstList2)[i], start=6, stop =7 ))
         p1<-ggplot(data=dat2, aes(Sample1,Sample2, fill=Fst)) +geom_tile(color="gray40")+ 
-                scale_fill_gradient2(low="white", high="blue",midpoint=0.5,limit=c(0,1))+
+                scale_fill_gradientn(colors =colorRampBlue(62), limits=c(0,1))+
                 theme_light()+
                 theme(axis.title.x = element_blank(), axis.title.y = element_blank(),panel.grid.major = element_blank(),
                       panel.border = element_blank(),
                       panel.background = element_blank(),
                       axis.text.x=element_text(size=9, angle=45,hjust=1))+ggtitle(title)
        
-        ggsave(file=paste0("Output_all/Diversity/",names(FstList2)[i],".Plot.pdf"),plot=p1,width=9, height=9, units='in',device='pdf')
+        ggsave(file=paste0("Output_all/Diversity/Fst_",names(FstList2)[i],".Plot.pdf"),plot=p1,width=9, height=9, units='in',device='pdf')
 }
 
 
@@ -80,8 +80,8 @@ library(gplots)
 library(heatmap3)
 
 mat<-with(dat,tapply(Fst,list(Sample2,Sample1),"[[",1)) 
-heatmap.2(mat, col=colorRampPalette(c("white","blue"))(50) )
-heatmap3(mat, col=colorRampPalette(c("white","blue"))(50) )
+#heatmap.2(mat, col=colorRampPalette(c("white","blue"))(50) )
+#heatmap3(mat, col=colorRampPalette(c("white","blue"))(50) )
 
 name1<-dat$Sample1[1]
 name2<-dat$Sample2[nrow(dat)]
@@ -89,10 +89,13 @@ name2<-dat$Sample2[nrow(dat)]
 mat2<-rbind(name1=rep(NA,times=nrow(mat)),mat)
 mat3<-cbind(mat2,name2=rep(NA,times=nrow(mat2)))
 diag(mat3)<-0
+rownames(mat3)[1]<-name1
 
+
+colorRampBlue <- colorRampPalette(c("white", "steelblue1", "blue3"))
 mat3m<-melt(mat3, na.rm=T)
 mat3m<-mat3m[!is.na(mat3m$value),]
-ggplot(data=mat3m, aes(X1,X2, fill=value)) +geom_tile(color="white")+ 
-        scale_fill_gradient2(low="white", high="blue",limit=c(0,1))+
+ggplot(data=mat3m, aes(Var1,Var2, fill=value)) +geom_tile(color="white")+ 
+        scale_fill_gradientn(colors=colorRampBlue(64),limit=c(0,1))+
         theme_minimal()
 

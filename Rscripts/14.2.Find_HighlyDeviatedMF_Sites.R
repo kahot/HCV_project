@@ -4,18 +4,16 @@ library(tidyverse)
 library(janitor)
 library(reshape2)
 library(dplyr)
+source("Rscripts/baseRscript.R")
+source("Rscripts/EstimateMF.R")
 
-
-cols2<-c("#66CCEE","#EE6677" ,"#228833")
-cols<-c("#66CCEE", "#228833" ,"#CCBB44", "#EE6677" ,"#AA3377", "#4477AA", "#BBBBBB")
 cols3<-c("#009988CC" ,"#66CCEECC", "#EE6677CC", "#4477AACC")
 
 ####
 data<-read.csv("Output1A/GLM/GlmdataFull.Ts.Q35.csv", stringsAsFactors = F, row.names = 1)
 
-#If run previously, read the EstimatedMF
+#If run previously, read the EstimatedMF and skip to "Create the summary data frame" 
 #data<-read.csv("Output1A/GLM/Ts.with.EstimatedMF.csv",stringsAsFactors = F)
-
 
 ##add the codon position
 vec<-data.frame('pos'= 342:8609)
@@ -38,39 +36,6 @@ rownames(modcoef)<-modcoef$X
 modcoef<-modcoef[,-1]
 coef.vals <- modcoef[,1]
 
-
-#from GLMPlotFunctions.R
-EstimateMF<- function(NsOrNo = 0, CpGorNo = 0, bigAAChangeOrNo = 0,CoreorNo=0,E1orNo=0, HVRorNo=0,E2orNo=0,NS1orNo=0,NS2orNo=0,NS4AorNo=0,NS5BorNo=0){
-        atcg.mat <- as.data.frame(matrix(data = 0, ncol = 18, nrow = 4))
-        #ATCG elements
-        diag(atcg.mat[1:4, 1:4]) <- 1
-        #Reserve the first column for intercept
-        atcg.mat[,1] <- 1
-        #CpG mutation or not
-        atcg.mat[1:2,5] <- CpGorNo
-        atcg.mat[3:4,5] <- 0
-        #synonymous or nonsynonymous mutation?
-        atcg.mat[,6] <- NsOrNo
-        #bigAA change?
-        atcg.mat[,7] <- bigAAChangeOrNo * atcg.mat[,6]
-        
-        #nonysynonymous interactions with a t c g
-        atcg.mat[8:10] <- atcg.mat[,2:4] * atcg.mat[,6]
-        #genes
-        atcg.mat[,11] <- CoreorNo
-        atcg.mat[,12] <- E1orNo
-        atcg.mat[,13] <- HVRorNo
-        atcg.mat[,14] <- E2orNo
-        atcg.mat[,15] <- NS1orNo
-        atcg.mat[,16] <- NS2orNo
-        atcg.mat[,17] <- NS4AorNo
-        atcg.mat[,18] <- NS5BorNo
-        
-        #names
-        names(atcg.mat) <- c(rownames(modcoef) )
-        
-        return(as.matrix(atcg.mat))
-} 
 
 
 data$EstimatedMF<-0
@@ -97,21 +62,6 @@ for (i in 1:nrow(data)){
         data$EstimatedMF[i] <- exp(setUpDat[rown,] %*% coef.vals)
 }
 
-# NS3, NS4B and NS5A are not in the Best Fit model # 
-#visualize the results
-plot(data$mean[500:2000], pch=16, col="#66CCEE", cex=.5, xaxt='n', ylab='Mutation frequency',xlab='Genome position')
-points(data$EstimatedMF[500:2000],pch=16, col="blue",cex=0.5)
-xticks<-seq(0,1500, by=500)
-axis(side=1, at=xticks,labels=seq(500,2000, by = 500))
-legend('topright', legend=c('Ovserved', 'Estimated'), col=c("#66CCEE",'blue'), pch= 16,cex=.7)
-
-pdf("Output1A/GLM/Expected.vs.observed.mf.pdf", width=10, height = 6)
-plot(data$mean, pch=".", col="#66CCEE", cex=1, ylab='Mutation frequency',xlab='Genome position')
-points(data$EstimatedMF,pch=".", col="blue",cex=1)
-legend('topright', legend=c('Ovserved', 'Estimated'), col=c("#66CCEE",'blue'), pch= 16,cex=.7)
-dev.off()
-
-
 # find the differences betweeen [estimated - observed]
 data$diff<- data$EstimatedMF-data$mean
 
@@ -119,13 +69,14 @@ pdf("Output1A/GLM/Expected.vs.observed.mf-Difference.pdf", width=10, height = 6)
 plot(data$diff,pch=".", col="#66CCEE", cex=1, ylab="Expected - Observed mut freq",xlab="Genome position")
 dev.off()
 
-# create the summary data based on mutation type
+
+#### Create the summary data based on mutation type
 MFdiff<-data.frame("Mutation Type"= c("Overall", "Syn","Nonsyn", "Syn-CpG", "Syn-nonCpG","NS-CpG","NS-nonCPG"))
 MFdiff$Mean.diff<-c(mean(data$diff),mean(data$diff[data$Syn==1]),mean(data$diff[data$Nonsyn==1]), 
                     mean(data$diff[data$Syn==1&data$CpG==1]),mean(data$diff[data$Syn==1&data$CpG==0&(data$ref=="a"|data$ref=="t")]),
                     mean(data$diff[data$Nonsyn==1&data$CpG==1]),mean(data$diff[data$Nonsyn==1&data$CpG==0&(data$ref=="a"|data$ref=="t")]))
 MFdiff$Mutation.Type<-factor(MFdiff$Mutation.Type, c("Overall", "Syn","Nonsyn","Syn-CpG", "Syn-nonCpG","NS-CpG","NS-nonCPG"))
-write.csv(MFdiff, "Output1A/GLM/Expected.vs.observed.mf-Difference2.csv")
+#write.csv(MFdiff, "Output1A/GLM/Expected.vs.observed.mf-Difference2.csv")
 
 label_scientific <- function(l) {
         # turn in to character string in scientific notation
@@ -137,6 +88,7 @@ label_scientific <- function(l) {
         # return this as an expression
         parse(text=l)
 }
+
 MF<-MFdiff[1:3,]
 ggplot(MF,aes(x=Mutation.Type,y=Mean.diff))+
         geom_bar(stat="identity", color="#EE6677",fill="#EE667766",width=0.8)+
@@ -164,7 +116,6 @@ range(data2$diff)
 data$top5<-sapply(data$diff,function(x){ if (x>min(data2$diff)) x=x
 else x<-NA})
 plot(data2$pos, data2$diff,pch=16, col="#66CCEE", cex=.5)
-
 #write.csv(data, "Output1A/GLM/Ts.with.EstimatedMF.csv",row.names = F)
 
 
@@ -243,18 +194,6 @@ ggplot(NT,aes(x=Var1,y=Freq))+
         theme(plot.margin=unit(c(5,5,5,20),"points"))
 ggsave("Output1A/GLM/Overrepresented.Nucleotides.in.Top5_blue.pdf", width=5, height=4)
 
-ggplot(NT,aes(x=Var1,y=Freq))+
-        geom_bar(stat="identity", color="#EE6677",fill="#EE667766",width=0.8)+
-        theme_bw()+labs(x="")+
-        theme(panel.grid.major.x = element_blank(),panel.grid.minor.x = element_blank())+
-        geom_hline(yintercept=0, size=0.4, color="gray10")+
-        scale_x_discrete(labels=c("A","C","G","T"))+
-        theme(axis.text.x = element_text(size=14),
-              axis.text.y = element_text(size=14),axis.title.y = element_text(size = 14))+
-        ylab(expression(paste("Over/under-represented NT (%) \n at conserved sites")))+
-        theme(plot.margin=unit(c(5,5,5,20),"points"))
-ggsave("Output1A/GLM/Overrepresented.Nucleotides.in.Top5.pdf", width=5, height=4)
-
 ### plot side by side
 
 ggplot(NT2,aes(nt,Percent))+
@@ -278,10 +217,24 @@ ggplot(NT2, aes(fill=nt, y=Percent, x=Type))+
 ggsave(filename="Output1A/GLM/NT_percent_comparison2.pdf",width = 3.5, height = 5)
 
 
-table(data2$CpG, data2$ref)
-#            a   c   g   t
-#0(nonCPG)  44 145  57  72
-#1(CpG)     26   0   0  43
+## run chi-square test 
+library(MASS)
+
+nt.table<-data.frame(Sum[[1]])
+row.names(nt.table)<-nt.table$Var1
+Ref<-Sum[[2]]
+nt.table$Ref<-Ref
+nt.table<-nt.table[,-1]
+colnames(nt.table)[1]<-"Conserved"
+
+chisq.test(nt.table)
+#X-squared = 42.937, df = 3, p-value = 2.538e-09
+
+#Run Gtest of independence
+library(DescTools)
+GTest(nt.table)
+#G = 46.214, X-squared df = 3, p-value = 5.109e-10
+
 
 #proportion of over/under represented AA by gene:
 #Adjust the length of the last gene
@@ -336,8 +289,8 @@ ggsave("Output1A/GLM/Overrepresented.sites.perGene.Top5_blue.pdf", width=6.8, he
 # Over or under represented amino acids
 AA$Total<-rowSums(AA[2:12])
 colnames(AA)[1]<-"AA"
-AA2<-AA[,c("AA","Total","Prop.conserved")]
 AA$Prop.conserved<-AA$Total/sum(AA$Total)
+AA2<-AA[,c("AA","Total","Prop.conserved")]
 
 AAall<-as.data.frame(table(data$WTAA))
 colnames(AAall)<-c("AA","Counts")
@@ -359,27 +312,18 @@ ggplot(AAall,aes(x=AA,y=proportion))+
 ggsave("Output1A/GLM/Overrepresented.AA.perGene.Top5_blue.pdf", width=10, height=6)
 
 
-#Look at the drug resistant sites
-dr2<-read.csv("Data/HCV_drugresistance_NTpos.csv")
-drpos<-data$pos %in% dr2$NTpos 
-DRsites_all<-data[drpos,]
-#Ave mut freq of known drug resistant sites
-mean(DRsites_all$mean)# 0.004466228
+## Run G-test /Chi-square test
+aa.table<-AAall[,c("AA","Counts","Total")]
+row.names(aa.table)<-aa.table$AA
+aa.table<-aa.table[,-1]
+colnames(aa.table)<-c("Ref","Conserved")
 
-mean(DRsites_all$mean[DRsites_all$Nonsyn==1])  # 0.003669182
-mean(DRsites_all$mean[DRsites_all$Nonsyn==0])  # 0.007426685
+GTest(aa.table)
+#G = 60.155, X-squared df = 19, p-value = 3.657e-06
 
-table(DRsites_all$Nonsyn) # Majority of drug resistant sites are Nonsyn sites
-#0  1 
-#7 26
 
-######
-# Look at the drug resistant sites in the conserved 5% sites: 
-DRsites_h<-data2[(data2$pos%in% dr2$NTpos),]
-# only 1 site 
-# pos a t c g Syn Nonsyn Stop CpG bigAAChange        mean gene Core E1 HVR1 E2 NS1 NS2 NS3 NS4A NS4B NS5A NS5B codon ref WTAA EstimatedMF        diff
-#6347 1 0 0 0   1      0    0   0           0 0.007877798   11    0  0    0  0   0   0   0    0    0    1    0     3   a    Q  0.01142332 0.003545527
 
+## Look at Syn vs Nonsyn and CpG vs Non-CpG
 data2[data2$Nonsyn==1,]
 data2[data2$CpG==1,]
 ##########
@@ -405,11 +349,22 @@ ggplot(TP,aes(x=Var1,y=Freq))+
 ggsave("Output1A/GLM/Overrepresented.Type.in.Top5_blue.pdf", width=4, height=3)
 
 
+type.table<-data.frame(type[[1]])
+Ref<-type[[2]]
+type.table$Ref<-Ref
+type.table<-type.table[,-1]
+colnames(type.table)<-c("Conserved","Ref")
+row.names(type.table)<-c("Syn","Nonsyn")
+
+GTest(type.table)
+#G = 764.51, X-squared df = 1, p-value < 2.2e-16
+
+####
 cpg<-list()
 cpg[[1]]<-table(data2$CpG)
 cpg[[2]]<-table(data$CpG)
-cpg[[3]]<-cpg[[1]]/sum(type[[1]])
-cpg[[4]]<-cpg[[2]]/sum(type[[2]])
+cpg[[3]]<-cpg[[1]]/sum(cpg[[1]])
+cpg[[4]]<-cpg[[2]]/sum(cpg[[2]])
 cpg[[5]]<-cpg[[3]]-cpg[[4]]
 CP<-as.data.frame(cpg[[5]]/cpg[[4]]*100)
 
@@ -424,3 +379,15 @@ ggplot(CP,aes(x=Var1,y=Freq))+
         ylab(expression(paste("Over/under-represented CpG sites (%) \n at conserved sites")))+
         theme(plot.margin=unit(c(5,5,5,20),"points"))
 ggsave("Output1A/GLM/Overrepresented.CpG.in.Top5_blue.pdf", width=4, height=4)
+
+cpg.table<-data.frame(cpg[[1]])
+Ref<-cpg[[2]]
+cpg.table$Ref<-Ref
+cpg.table<-cpg.table[,-1]
+colnames(cpg.table)<-c("Conserved","Ref")
+row.names(cpg.table)<-c("Non-CpG","CpG")
+
+chisq.test(cpg.table)
+GTest(cpg.table)
+#G = 2.1103, X-squared df = 1, p-value = 0.1463
+

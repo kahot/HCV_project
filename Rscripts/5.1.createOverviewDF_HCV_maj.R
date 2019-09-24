@@ -1,4 +1,6 @@
-#Script to analyse the frequency data and associate with features
+#Script to create an overview files with mutation frequency data and their associated features 
+#(mut freq/features calculated based on MajNT.   Results=Overview1)
+
 library(dplyr)
 source("Rscripts/baseRscript.R")
 

@@ -34,22 +34,23 @@ s<-length(HCVFiles3)
 Ts<-mf.files[[1]]
 Ts<-Ts[Ts$pos>=342, ]
 mean(Ts$mean[Ts$Type=="syn"]) #0.008093379
-mean(Ts$mean[Ts$Type=="nonsyn"]) #0.003351718
-mean(Ts$mean[Ts$Type=="stop"]) #0.002024048
+mean(Ts$mean[Ts$Type=="nonsyn"]) #0.003348242
+mean(Ts$mean[Ts$Type=="stop"]) #0.002022381
 
 table(Ts$Type)
 #nonsyn   stop    syn 
 #  5193    220   2545  
 
-std.error(Ts$mean[Ts$Type=="syn"]) #9.068166e-05
-std.error(Ts$mean[Ts$Type=="nonsyn"]) #2.774701e-05
-std.error(Ts$mean[Ts$Type=="stop"]) # 9.214146e-05
+std.error(Ts$mean[Ts$Type=="syn"]) #9.066418e-05
+std.error(Ts$mean[Ts$Type=="nonsyn"]) # 2.768315e-05
+std.error(Ts$mean[Ts$Type=="stop"]) # 9.204526e-05
 
 r1<-wilcox.test(Ts$mean[Ts$Type=="syn"], Ts$mean[Ts$Type=="nonsyn"], alternative = "greater", paired = FALSE) 
 r2<-wilcox.test(Ts$mean[Ts$Type=="nonsyn"], Ts$mean[Ts$Type=="stop"], alternative = "greater", paired = FALSE) 
 r1[[3]]  #P=0
-r2[[3]]  #P=2.020456e-41
+r2[[3]]  #P= 1.933446e-41
 
+#CpG creating vs Non-CpG creating
 T2<-Ts[Ts$ref=="a"|Ts$ref=="t",]
 r3<-wilcox.test(T2$mean[T2$Type=="syn"&T2$makesCpG==0], T2$mean[T2$Type=="syn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
 r4<-wilcox.test(T2$mean[T2$Type=="nonsyn"&T2$makesCpG==0], T2$mean[T2$Type=="nonsyn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
@@ -65,9 +66,11 @@ WilcoxTest.results.nt<-data.frame(matrix(ncol=3,nrow=6))
 colnames(WilcoxTest.results.nt)<-c("nt","test","P.value")
 
 # 1) transition Mutations, using 'mean'
-dat<-mf_filtered[[1]]
+dat<-mf_files[[1]]
 #dat<-TransMutFreq_filtered
-dat<-dat[dat$pos>=342, ] #7997
+dat<-dat[dat$pos>=342, ]
+which(is.na(dat$freq.Ts))
+dat<-dat[1:8236, ]#7895
 ty<-which(colnames(dat)=="Type");fname="Transition"
 m<-data.frame()
 se<-data.frame()

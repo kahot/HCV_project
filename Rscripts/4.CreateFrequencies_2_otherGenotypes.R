@@ -6,7 +6,7 @@ source("Rscripts/baseRscript.R")
 
 
 #Specify the Genotype
-geno<-"3A"
+geno<-"1B"
 
 
 HCVFiles<-list.files(paste0("Output",geno,"/CSV/"),pattern="un.csv")
@@ -18,7 +18,7 @@ freqPatTvs<-data.frame(row.names=MergeFiles)
 freqPatTvsRef<-data.frame(row.names=MergeFiles)
 
 coding.start<-262 #for 3A
-coding.start<=264 # for 1B
+coding.start<-264 # for 1B
 coding.end<-9376
 no<-data.frame("pos"=c(coding.start:8800))
 
@@ -51,7 +51,7 @@ for (i in 1:length(MergeFiles)){
         
         #read the refrence sequence:
         #1B
-        reference<-read.dna(paste0("Data/HCV",geno,".fasta"), format = "fasta",as.character=TRUE)
+        reference<-read.dna(paste0("Data/HCV",geno,"_Consensus.fasta"), format = "fasta",as.character=TRUE)
         ref.code<-reference[coding.start:coding.end]
         SeqData<-merge(no,SeqData,by="pos",all.x=T)
         SeqData$ref<-ref.code[1:length(SeqData[,1])]
@@ -140,7 +140,7 @@ for (i in 1:length(MergeFiles)){
         }
         
         
-        write.csv(SeqData,paste0("Output",geno,"/SeqData/SeqData_",id,".csv"))
+        write.csv(SeqData,paste0("Output",geno,"/SeqData2/SeqData_",id,".csv"))
         
         
 }

@@ -17,13 +17,12 @@ cols3<-c("#66CCEE4D","#66CCEE","#EE66774D","#EE6677")
 #############
 # find the sites that are most different in mutation frequencies between the genotypes
 
-mf<-read.csv("Output_all/Unfiltered/Ts.Same_Mean_3genotypes.csv", stringsAsFactors = F )
-mf<-mf[-c(1:3),-1]
-mf<-mf[mf$merged.pos<=8619,]
+mf<-read.csv("Output_all/Unfiltered/Ts.Same_Mean_3genotypes.csv", stringsAsFactors = F, row.names = 1 )
+mf<-mf[mf$merged.pos>264&mf$merged.pos<=8608,]
 
 geno<-c("1A","1B","3A")
 CombG<-t(combn(geno,2))
-s<-as.integer(0.05*nrow(mf)) #top 5%
+s<-as.integer(0.05*nrow(mf)) #top 5% 417 sites
 
 for (g in 1:3){
         g1<-CombG[g,1]

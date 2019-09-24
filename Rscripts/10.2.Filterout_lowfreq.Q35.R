@@ -180,3 +180,46 @@ for (i in 1:4){
 
 write.csv(SumTab, "Output1A/Q35Compare/Comparison_summary.Ts.csv")
 
+## Test whether 3 are different 
+SumTab<-data.frame("data"=c("Ts.Q35","Ts_NA","Ts_zero"))
+
+t<-list()
+t[[1]]<-TsMutFreq
+t[[2]]<-Ts_NA
+t[[3]]<-Ts_zero
+names(t)<-c("Ts.Q35","Ts_NA","Ts_zero")
+
+T1<-t[[1]]
+T2<-t[[2]]
+T3<-t[[3]]
+wilcox.test(T1$mean, T2$mean, alternative = "less", paired = FALSE) 
+#W = 28830000, p-value < 2.2e-16
+wilcox.test(T1$mean, T3$mean, alternative = "greater", paired = FALSE) 
+#W = 32347000, p-value = 0.009262
+wilcox.test(T2$mean, T3$mean, alternative = "greater", paired = FALSE) 
+#W = 35046000, p-value < 2.2e-16
+
+
+
+for (i in 1:length(t)){
+        Ts<-t[[i]]
+        SumTab$mean[i]<-mean(Ts$mean, na.rm=T)
+        SumTab$Syn[i]<-mean(Ts$mean[Ts$Type=="syn"],na.rm=T) 
+        SumTab$Nonsyn[i]<-mean(Ts$mean[Ts$Type=="nonsyn"],na.rm=T)
+        SumTab$Stop[i]<-mean(Ts$mean[Ts$Type=="stop"],na.rm=T)
+        
+        r1<-wilcox.test(Ts$mean, Ts2$mean, alternative = "greater", paired = FALSE) 
+        
+        
+        T2<-Ts[Ts$ref=="a"|Ts$ref=="t",]
+        SumTab$CpGmaking_Syn[i]<-mean(Ts$mean[Ts$Type=="syn"&Ts$makesCpG==1],na.rm=T)
+        SumTab$NoCpGmaking_Syn[i]<-mean(T2$mean[T2$Type=="syn"&T2$makesCpG==0],na.rm=T)
+        r3<-wilcox.test(T2$mean[T2$Type=="syn"&T2$makesCpG==0], T2$mean[T2$Type=="syn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
+        SumTab$P_value.Wilcoxon.Test_syn[i]<-r3[[3]]
+        SumTab$CpGmaking_Nonsyn[i]<-mean(Ts$mean[Ts$Type=="nonsyn"&Ts$makesCpG==1],na.rm=T)
+        SumTab$NoCpGmaking_Nonsyn[i]<-mean(T2$mean[T2$Type=="nonsyn"&T2$makesCpG==0],na.rm=T)
+        r4<-wilcox.test(T2$mean[T2$Type=="nonsyn"&T2$makesCpG==0], T2$mean[T2$Type=="nonsyn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
+        SumTab$P_value.Wilcoxon.Test_nonsyn[i]<-r4[[3]]
+}
+
+write.csv(SumTab, "Output1A/Q35Compare/Comparison_summary.Ts.csv")

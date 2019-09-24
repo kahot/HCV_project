@@ -15,8 +15,8 @@ dir.create("Output3A/Overview_D/")
 
 
 geno<-c("1A","1B","3A")
-f=2
-for (f in 1:2){
+
+for (f in 1:3){
         flist1<-list.files(paste0("Output",geno[f],"/Overview3/"),pattern="overview3.csv")
         flist2<-list.files(paste0("Output",geno[f],"/SeqData/"),pattern="SeqData")
         
@@ -77,8 +77,7 @@ for (f in 1:2){
         dev.off()
 }
 
-
-
+####
 
 ###### Calculate Fst between the samples
 g=3

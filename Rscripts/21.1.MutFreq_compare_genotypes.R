@@ -4,10 +4,10 @@ library(sfsmisc)
 library(colorspace)
 library(plotrix)
 library(gplots)
-
+source("Rscripts/baseRscript.R")
 
 geno<-c("1A","1B","3A")
-cols2<-c("#66CCEE","#EE6677" ,"#228833")
+#cols2<-c("#66CCEE","#EE6677" ,"#228833")
 colors<-c("#66CCEE99","#EE667799" ,"#22883399")
 
 #read mut freq summary data
@@ -202,8 +202,14 @@ colors12<-qualitative_hcl(12, palette="Dark3")
 p3<-ggplot(sumG, aes(x=Gene, y=Mean, group=Genotype, color=Genotype))+
         geom_point(position=position_dodge(width=0.3))+scale_color_manual(values=cols2)+
         geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.2, position=position_dodge(width=0.3))+
-        theme_bw()+theme(axis.text=element_text(size=11), axis.title=element_text(size=13))+ylab("Mean mutation frequency")
+        theme_bw()+theme(axis.text=element_text(size=11), axis.title=element_text(size=13))+ylab("Mean mutation frequency")+
+        theme(panel.grid.major.x=element_blank())+
+        geom_vline(xintercept = c(1:11)+0.5,  
+                   color = "gray60", size=.5)
 
 ggsave(filename="Output_all/Ave.Mutfreq_by.gene_by.genotype.pdf",plot=p3, width = 10, height = 8)
-#ggsave(filename="Output_all/Ave.Mutfreq_by.gene_by.genotype2.pdf",plot=p3, width = 8.5, height = 5)
+ggsave(filename="Output_all/Ave.Mutfreq_by.gene_by.genotype2.pdf",plot=p3, width = 8.5, height = 5)
+
+
+# Statistics
 

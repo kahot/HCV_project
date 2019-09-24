@@ -9,7 +9,7 @@ source("Rscripts/baseRscript.R")
 geno<-"1B"
 geno<-"3A"
 
-#Load the overview files (summarized using the ref (H77))
+#(remove D75213R -low read nubmers)
 
 HCVFiles_overview2<-list.files(paste0("Output",geno,"/Overview2/"),pattern="overview2.csv")
 Overview_sum_ref<-list()
@@ -64,9 +64,9 @@ write.csv(TMutFreq, paste0("Output",geno,"/MutFreq/TsMutFreqSummary_",geno,".all
 
 
 ### Calculate mean transition mut. freq
-mean(rowMeans(TMutFreq[2:(s+1)],na.rm=T),na.rm=T)  #1B:0.005223944  1A:0.005135379 3A:0.00443436
+mean(rowMeans(TMutFreq[2:(s+1)],na.rm=T),na.rm=T)  #1B:0.004976844  1A:0.005135379 3A:0.004422058
 TMutFreq$mean<-rowMeans(TMutFreq[2:(s+1)],na.rm=T)
-mean(TMutFreq$mean[TMutFreq$pos>=342],na.rm=T) # 1B: 0.005252472    1A: 0.005157235  3A: 0.004449846
+mean(TMutFreq$mean[TMutFreq$pos>=342],na.rm=T) # 1B: 0.004976844    1A: 0.005157235  3A:0.004437353
 
 dat<-FilteredOverview1[[1]]
 dat<-dat[,c(1,4,5,20,23,27,31,32,33,36,39)]
@@ -74,26 +74,26 @@ TMutFreq<-merge(TMutFreq,dat, by="pos")
 
 
 #Syn vs NonSyn
-mean(TMutFreq$mean[TMutFreq$Type=="syn" & TMutFreq$pos>=342], na.rm=T) #1B:0.008920395  1A:0.007561845    3A: 0.006943268
-mean(TMutFreq$mean[TMutFreq$Type=="nonsyn"& TMutFreq$pos>=342], na.rm=T) #1B: 0.003489323  1A:0.003308032   3A: 0.003266465
+mean(TMutFreq$mean[TMutFreq$Type=="syn" & TMutFreq$pos>=342], na.rm=T) #1B:0.008339088  1A:0.007561845    3A: 0.006822341
+mean(TMutFreq$mean[TMutFreq$Type=="nonsyn"& TMutFreq$pos>=342], na.rm=T) #1B: 0.003530395  1A:0.003308032   3A: 0.003158143
 
 
 # Remove the sites with >30% NA in mutation frequency in FilteredOverview1 files, 
 #count the # of non NA samples
 TMutFreq$sum.nonNA<-apply(TMutFreq[2:(s+1)],1,function(x) sum(!is.na(x)))
-table(TMutFreq$sum.nonNA) #241 sites are all NA
+table(TMutFreq$sum.nonNA) #188 sites are all NA
 #TMutFreq<-TMutFreq[TMutFreq$sum!=0,] 
 
 TMutFreq$keep0.5<-((TMutFreq$sum)/s)>=0.5
 TMutFreq$keep0.3<-((TMutFreq$sum)/s)>=(1/3)
 
 #how many sites?
-sum(TMutFreq$keep0.5==T) #7392 (3A)     7733(1B)   7481
-sum(TMutFreq$keep0.3==T) #7879 (3A)     7935 (1B)  8025
+sum(TMutFreq$keep0.5==T) #7692 (3A)     7733(1B)   7481
+sum(TMutFreq$keep0.3==T) #8262 (3A)     7935 (1B)  8025
 
 #what % are REMOVED?
-1-sum(TMutFreq$keep0.5==T)/nrow(TMutFreq) #3A:0.1343249    1B: 0.09417828        0.1236968
-1-sum(TMutFreq$keep0.3==T)/nrow(TMutFreq) #3A:0.07729242   1B: 0.07051657        0.05880286
+1-sum(TMutFreq$keep0.5==T)/nrow(TMutFreq) #3A:0.05517161    1B: 0.09417828     3A: 0.09919194
+1-sum(TMutFreq$keep0.3==T)/nrow(TMutFreq) #3A:0.03350123   1B: 0.07051657      3A: 0.0324394
 
 #create a vector of positions to keep  : 1/3 for now (3/12/1) 
 Keep<-data.frame(TMutFreq$pos[TMutFreq$keep0.3==T])
@@ -156,7 +156,7 @@ Ts<-MutFreq_Ts%>% purrr::reduce(full_join, by='pos')
 M<-FilteredOverview2[[3]]
 muttypes<-M[,c(1,4,5,20,23,27,31,32,33,36,39)]
 Ts$mean<-rowMeans(Ts[2:s+1],na.rm=T)
-mean(Ts$mean)  #0.004790245
+mean(Ts$mean)  #1B 0.00493182
 
 Ts2<-merge(Ts,muttypes,by="pos")
 write.csv(Ts2,paste0("Output", geno,"/MutFreq/Filetered.Summary.Ts.",geno,".csv"))

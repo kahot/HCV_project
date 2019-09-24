@@ -43,6 +43,10 @@ genetable<-genetable[genetable$pos>=342&genetable$pos<=end,]
 
 sc<-merge(Trans, genetable, by="pos")
 AveSC<-aggregate(sc$EstSC,by=list(sc$gene), mean, na.rm = TRUE)
+colnames(AveSC)<-c("gene","SC")
+SESC<-aggregate(sc$EstSC,by=list(sc$gene), std.error, na.rm = TRUE)
+colnames(SESC)<-c("gene","se")
+
 #   Group.1           x
 #1     Core 0.002741075
 #2       E1 0.002440335
@@ -69,23 +73,36 @@ for (i in 1:11){
 
 GCs<-as.data.frame(do.call(rbind,GCcontents))
 GCs$gene<-rownames(GCs)
-colnames(AveSC)<-c("gene","SC")
+colnames(GCs)[1]<-"GC"
 
 SC_summary<-merge(AveSC,GCs,by="gene")
-colnames(SC_summary)<-c("gene","ave.SC","GCcontent")
+SC_summary<-merge(SC_summary,SESC,by="gene")
 write.csv(SC_summary,"Output1A/SummaryStats/SelCoeff_summary_by_genes.csv")
 
 ###########  Plot the average Sel Coeff by genes
 
 title<-"Average selection coefficients by genes"
 
-plot1<-ggboxplot(sc,x="gene",y="mean", xlab="Gene", ylab="Estimated selective coefficient",color="gene")+
+ggboxplot(sc,x="gene",y="EstSC", xlab="Gene", ylab="Estimated selective coefficient",color="gene")+
         theme(legend.position="none")
 
-plot1<-ggboxplot(sc,x="gene",y="mean", xlab="Gene", ylab="Estimated selective coefficient",color="gray40")+
+ggboxplot(sc,x="gene",y="EstSC", xlab="Gene", ylab="Estimated selective coefficient",color="gray40")+
         theme(legend.position="none")
 
-ggsave(filename=paste0("Output1A/SelCoeff/",title,".2.pdf"),plot=plot1, width = 10, height = 7)
+ggsave(filename=paste0("Output1A/SelCoeff/SelCoef_by.gene.Boxplot.pdf"), width = 10, height = 7)
+
+
+
+ggplot(SC_summary,aes(gene,y=SC))+
+        geom_point(color="royalblue")+
+        geom_errorbar(aes(ymin=SC-se, ymax=SC+se), width=.2,color="royalblue" )+
+        theme_bw()+
+        theme(axis.title.x=element_blank())+ylab("Average selection coefficient")+
+        theme(panel.grid.major.x = element_blank())
+
+ggsave(filename="Output1A/SelCoeff/Ave.SC_by.gene.pdf",width =5, height = 4)
+
+
 
 
 
