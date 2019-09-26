@@ -1,6 +1,10 @@
 #######
 # Calculate the Fst between genotyeps
 
+load("Overview1.1A.RData")
+load("Overview1.1B.RData")
+load("Overview1.3A.RData")
+
 Overview1A<-Overview1.1A[1:10]
 Overview1B<-Overview1.1B[1:10]
 Overview3A<-Overview1.3A[1:10]
@@ -77,6 +81,7 @@ id1B<-names(Overview1.1B)
 id3A<-names(Overview1.3A)
 
 data<-FstDF
+data<-read.csv("Output_all/Diversity/AllGenotype_Fst2.csv", stringsAsFactors = F, row.names = 1)
 splitted<-strsplit(data$comb, split=" ")
 for (i in 1:nrow(data)){
         data$Sample1[i]<-splitted[[i]][1]
@@ -97,9 +102,14 @@ for (i in 1:nrow(dat)){
 colorFst<-c(rep(cols2[1], times=10), rep(cols2[2], times=10), rep(cols2[3], times=10))
 colorFst2<-c(rep(cols2[1], times=9), rep(cols2[2], times=10), rep(cols2[3], times=10))
 
-ggplot(data=dat, aes(Sample1,Sample2, fill=Fst)) +geom_tile(color="gray40")+ 
-        scale_fill_gradient2(low="white", high="#0000FFCC",mid="#00FDFFCC", midpoint=0.5,limit=c(0,1))+
-        theme_light()+
+
+colorRampBlue <- colorRampPalette(c("white", "lightskyblue1", "#3746F7"))
+colorRampBlue <- colorRampPalette(c("white", "lightskyblue1", "royalblue"))
+
+
+ggplot(data=dat, aes(Sample1,Sample2, fill=Fst)) +geom_tile(color="gray70")+ 
+        scale_fill_gradientn(colors=colorRampBlue(64),limit=c(0,1))+
+        theme_bw()+
         theme(axis.title.x = element_blank(), axis.title.y = element_blank(),panel.grid.major = element_blank(),
               panel.border = element_blank(),
               panel.background = element_blank(),
@@ -107,5 +117,46 @@ ggplot(data=dat, aes(Sample1,Sample2, fill=Fst)) +geom_tile(color="gray40")+
         theme(axis.text.x=element_text(color=colorFst))+
         theme(axis.text.y=element_text(color=colorFst2))
 
-ggsave(file=paste0("Output_all/Diversity/Fst_3Gentypes.Plot.pdf"),width=9, height=9, units='in',device='pdf')
+ggsave(file=paste0("Output_all/Diversity/Fst_3Gentypes.Plot3.pdf"),width=9.5, height=9, units='in',device='pdf')
 
+
+############
+colorRampPink <- colorRampPalette(c("white",  "#EE6677"))
+
+pairpi<-read.csv("Output_all/Diversity/Pairwise.pi.csv", stringsAsFactors = F)
+ggplot(data=pairpi, aes(Sample1,Sample2, fill=Pi)) +geom_tile(color="gray50", size=.3)+ 
+        scale_fill_gradientn(colors=colorRampPink(64), limit=c(200,2500))+
+        theme_bw()+
+        theme(axis.title.x = element_blank(), axis.title.y = element_blank(), 
+              panel.grid.major = element_blank(),panel.border = element_blank())+
+        geom_rect(aes(xmin = 1 - 0.5, xmax = 3 + 0.5, ymin = 1 - 0.5, ymax = 3 + 0.5),
+                  fill = "transparent", color = "gray40", size = .3)
+ggsave("Output_all/Diversity/Fst_arlequin.pdf",width=5, height=4.3, units='in',device='pdf')
+
+
+#dat1<-dat
+g1A<-c()
+g1B<-c()
+g3A<-c()
+g1A.1B<-c()
+g1A.3A<-c()
+g1B.3A<-c()
+
+for (i in 1:nrow(dat1)){
+        if (dat1$Sample1[i] %in% id1A & dat1$Sample2[i] %in% id1A ) g1A<-c(g1A, dat$Fst[i])
+        if (dat1$Sample1[i] %in% id1B & dat1$Sample2[i] %in% id1B)  g1B<-c(g1B, dat$Fst[i])
+        if (dat1$Sample1[i] %in% id3A & dat1$Sample2[i] %in% id3A)  g3A<-c(g3A, dat$Fst[i])
+        
+        if (dat1$Sample1[i] %in% id1A & dat1$Sample2[i] %in% id1B ) g1A.1B<-c(g1A.1B, dat$Fst[i])
+        if (dat1$Sample1[i] %in% id1A & dat1$Sample2[i] %in% id3A ) g1A.3A<-c(g1A.3A, dat$Fst[i])
+        if (dat1$Sample1[i] %in% id1B & dat1$Sample2[i] %in% id3A ) g1B.3A<-c(g1B.3A, dat$Fst[i])
+        
+        
+}
+
+mean(g1A) #0.6528514
+mean(g1B) #0.6601241
+mean(g3A) #0.6370741
+mean(g1A.1B) #0.8727324
+mean(g1A.3A) #0.9374752
+mean(g1B.3A) #0.9219176

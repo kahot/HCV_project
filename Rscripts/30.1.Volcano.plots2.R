@@ -26,11 +26,10 @@ for (i in 1:3){
         names(FstList)[i]<-substr(fstfiles[i], start=1, stop = 9)
 }
 
-Summary<-read.csv("Output_all/Unfiltered/Ts.MinorVariant_Mean_3genotypes.csv",stringsAsFactors = F, row.names = 1)
+Summary<-read.csv("Output_all/Unfiltered/Ts.Same_Mean_3genotypes.csv",stringsAsFactors = F, row.names = 1)
 Summary$gene[Summary$gene=="NS1(P7)"]<-"NS1"
 
-#for (g in 1:3){  
-g=1
+for (g in 1:3){  
         dt<-FstList[[g]]
         fname<-substr(names(FstList)[g], start=5, stop = 9)
         g1<-substr(names(FstList)[g], start=5, stop = 6)
@@ -51,25 +50,23 @@ g=1
         dt.top<-dt[order(dt$Fst,decreasing = T,na.last = T),]
         dt.top<-dt.top[c(1:s),]
         
-        #select sites with MF g1> g2 (costly sites in g2)
-        dt1<-dt[dt$diff>0,]
-        dt1.top<-dt1[order(dt1$Fst,decreasing = T,na.last = T),]
-        dt1.top<-dt1.top[c(1:s),]
-        
-        #select sites with MF g1 < g2 (costly sites in g1)
-        dt2<-dt[dt$diff<0,]
-        dt2.top<-dt2[order(dt2$Fst,decreasing = T,na.last = T),]
-        dt2.top<-dt2.top[c(1:s),]
-
+        if (g==1) {col1<-colors2[1]; col2<-colors2[3]}
+        if (g==2) {col1<-colors2[1]; col2<-colors2[5]}
+        if (g==3) {col1<-colors2[3]; col2<-colors2[5]}
         #volcano plot like
-        plot(dt$diff, dt$Fst, pch=16, cex=.5, col='grey', xlim=c(-0.08,0.08), xlab=paste0("Difference in mutation frequency (", fname,")"),
+        pdf(paste0("Output_all/Fst_T/Volcanoplot.", fname,".pdf"), width = 5, height=4.2)
+        plot(dt$diff, dt$Fst, pch=16, cex=.5, col='grey', xlim=c(-0.09,0.09),ylim=c(-0.015, 0.08), xlab=paste0("Difference in mutation frequency (", fname,")"),
              ylab="Fst")
-        points(dt.top$diff[dt.top$diff>0], dt.top$Fst[dt.top$diff>0], pch=16, cex=.5,col=colors2[3])
-        points(dt.top$diff[dt.top$diff<0], dt.top$Fst[dt.top$diff<0], pch=16, cex=.5,col=colors2[5])
+        points(dt.top$diff[dt.top$diff>0], dt.top$Fst[dt.top$diff>0], pch=16, cex=.5,col=col2)
+        points(dt.top$diff[dt.top$diff<0], dt.top$Fst[dt.top$diff<0], pch=16, cex=.5,col=col1)
         abline(v=0, col='grey50', lty=3,lwd=1.3)
+        abline(h=min(dt.top$Fst), col='grey50', lty=3,lwd=1.3)
+        legend("topright", col=c(col1,col2), legend=c(g1,g2), pch=16, cex=.8, bty="n")
+        dev.off()
         
         
-        plot(dt$diff, dt$Fst, pch=16, cex=.5, col='grey', xlim=c(-0.08,0.08), xlab=paste0("Difference in mutation frequency (", fname,")"),
+        pdf(paste0("Output_all/Fst_T/Volcanoplot.color.byGene", fname,".pdf"), width = 5, height=4.2)
+        plot(dt$diff, dt$Fst, pch=16, cex=.5, col='grey', xlim=c(-0.09,0.09),ylim=c(-0.015, 0.08),  xlab=paste0("Difference in mutation frequency (", fname,")"),
              ylab="Fst")
         abline(v=0, col='grey50', lty=3,lwd=1.3)
         abline(h=min(dt.top$Fst), col='grey50', lty=3,lwd=1.3)
@@ -78,13 +75,26 @@ g=1
                 points(dt.top$diff[dt.top$gene==genes$Gene[i+1]],dt.top$Fst[dt.top$gene==genes$Gene[i+1]],pch=16, cex=.5,col=color.genes[i])
                 
         }
-        legend("topleft", col=color.genes, legend=genes$Gene[2:12], pch=16, cex=.5, bty="n")
+        if (g==1){
+                mtext(text=expression(""%->% "costly in 1B"), side=1, adj=1, cex=.6, line=0.5, col="gray40")
+                mtext(text=expression("costly in 1A" %<-%""), side=1, adj=0, cex=.6,line=0.5, col="gray40")
+        }
+        if (g==2){
+                mtext(text=expression(""%->% "costly in 3A"), side=1, adj=1, cex=.6, line=0.5, col="gray40")
+                mtext(text=expression("costly in 1A" %<-%""), side=1, adj=0, cex=.6, line=0.5, col="gray40")
+        }
+        if (g==3){
+                mtext(text=expression(""%->% "costly in 3A"), side=1, adj=1, cex=.6, line=0.5, col="gray40")
+                mtext(text=expression("costly in 1B" %<-%""), side=1, adj=0, cex=.6, line=0.5, col="gray40")
+        }
         
+        legend("topright", col=color.genes, legend=genes$Gene[2:12], pch=16, cex=.5, bty="n")
+        dev.off()
         
-        pdf(paste0("Output_all/Fst2/Volvano.plot.",fname,  "_red.pdf"), width=8, height = 18)
+        pdf(paste0("Output_all/Fst_T/Volvano.plot.",fname,  "_genes.pdf"), width=8, height = 18)
         par(mfrow = c(6,2))
         for (i in 1:11){
-                plot(dt$diff, dt$Fst, pch=16, cex=.5, col='grey', xlim=c(-0.08,0.08), xlab=paste0("Difference in mutation frequency (", fname,")"),
+                plot(dt$diff, dt$Fst, pch=16, cex=.5, col='grey', xlim=c(-0.09,0.09),ylim=c(-0.015, 0.08),  xlab=paste0("Difference in mutation frequency (", fname,")"),
                      ylab="Fst", main =genes$Gene[i+1])
                 abline(v=0, col='grey50', lty=3,lwd=1.3)
                 abline(h=min(dt.top$Fst), col='grey50', lty=3,lwd=1.3)
@@ -92,14 +102,16 @@ g=1
                 points(dt.top$diff[dt.top$gene==genes$Gene[i+1]&dt.top$diff<0],dt.top$Fst[dt.top$gene==genes$Gene[i+1]&dt.top$diff<0],pch=16, cex=.5,col="blue")
                 n1<-nrow(dt.top[dt.top$gene==genes$Gene[i+1]&dt.top$diff>0,])
                 n2<-nrow(dt.top[dt.top$gene==genes$Gene[i+1]&dt.top$diff<0,])
-                
+                t1<-nrow(dt[dt$gene==genes$Gene[i+1],])
+                p1<-round(n1/t1*100, digit=1)
+                p2<-round(n2/t1*100, digit=1)
                 ymax<-max(dt$Fst, na.rm = T)
-                text(0.076,(ymax-0.03), n1, cex=0.7, col="red")
-                text(-0.076,(ymax-0.03), n2, cex=0.7,col="blue")
+                text(0.076,0.075, paste0(n1, " (", p1, "%)"), cex=0.7, col="red")
+                text(-0.076,0.075, paste0(n1, " (", p2, "%)"),cex=0.7,col="blue")
                 
                 if (g==1){
-                mtext(text=expression(""%->% "costly in 1B"), side=1, adj=1, cex=.6, line=0.5, col="red")
-                mtext(text=expression("costly in 1A" %<-%""), side=1, adj=0, cex=.6,line=0.5, col="blue")
+                        mtext(text=expression(""%->% "costly in 1B"), side=1, adj=1, cex=.6, line=0.5, col="red")
+                        mtext(text=expression("costly in 1A" %<-%""), side=1, adj=0, cex=.6,line=0.5, col="blue")
                 }
                 if (g==2){
                         mtext(text=expression(""%->% "costly in 3A"), side=1, adj=1, cex=.6, line=0.5, col="red")
