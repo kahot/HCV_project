@@ -1,0 +1,5 @@
+"","test","P.value"
+"1","dat$mean[dat$Type == ""syn""] and dat$mean[dat$Type == ""nonsyn""]",0
+"2","dat$mean[dat$Type == ""nonsyn""] and dat$mean[dat$Type == ""stop""]",2.18721880085477e-40
+"3","T2$mean[T2$Type == ""syn"" & T2$makesCpG == 0] and T2$mean[T2$Type == ""syn"" & T2$makesCpG == 1]",0.00590855109414833
+"4","T2$mean[T2$Type == ""nonsyn"" & T2$makesCpG == 0] and T2$mean[T2$Type == ""nonsyn"" & T2$makesCpG == 1]",5.22995633115906e-12

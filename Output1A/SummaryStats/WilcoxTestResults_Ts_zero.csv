@@ -1,0 +1,7 @@
+"","nt","test","P.value"
+"1","a","syncpg and synnoncpg",0.0133171204112588
+"2","a","nonsyncpg and nonsynnoncpg",7.79810136414391e-06
+"3","t","syncpg and synnoncpg",0.0685821430617828
+"4","t","nonsyncpg and nonsynnoncpg",4.54977481794862e-08
+"5","c","synnoncpg and nonsynnoncpg",1.74320863321482e-294
+"6","g","synnoncpg and nonsynnoncpg",2.63153745099252e-185

@@ -1,0 +1,7 @@
+"","test","P.value"
+"1","mfSyn and mfNonSyn",1.45880875821942e-67
+"2","mfNonSyn and mfStop",0.999999998094194
+"3","mfSyn.CpG and mfSyn.nonCpG",1
+"4","mfNonSyn.CpG and mfNonSyn.nonCpG",1
+"5","CostSynNoCpGC2T and CostSynNoCpGA2G",1
+"6","CostSynNoCpGG2A and CostSynNoCpGA2G",0.992935246537645
