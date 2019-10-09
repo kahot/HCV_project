@@ -175,6 +175,13 @@ for (f in 2:3){
 
 
 
+#####
+FstList<-list()
+fstfiles<-list.files("Output_all/Fst_T/", pattern=glob2rx("*^Fst*.csv*"))
+for (i in 1:3){
+        FstList[[i]]<-read.csv(paste0("Output_all/Fst_T/",fstfiles[i]),stringsAsFactors = F, row.names = 1)
+        names(FstList)[i]<-substr(fstfiles[i], start=1, stop = 9)
+}
 
 ### Plot Fst
 
