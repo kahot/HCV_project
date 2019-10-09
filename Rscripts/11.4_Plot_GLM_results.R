@@ -8,7 +8,8 @@ HCVFiles_overview3<-list.files("Output_all/Overview3/",pattern="overview3.csv")
 
 
 ####  Make Plots  #####
-source("Rscripts/GLMPlotFunctions.R")
+source("Rscripts/BetaRefPlotFunctions.R")
+
 #create alpha
 cols4.60<-paste0(cols4,"66")
         
@@ -55,6 +56,131 @@ plotVals(1,0,1, cols4[3], .1)
 abline(v = 1:3 + .5, col = "black")
 dev.off()
 
+
+######
+effects1<-read.csv("Output1A/GLM/BetaReg.effects.csv", stringsAsFactors = F)
+effects1$factor<-factor(effects1$factor, levels=effects1$factor[1:17])
+effects1$percent<-effects1$percent*100
+
+ggplot(effects1[effects1$genotype=="1A",], aes(factor,percent)) +
+        geom_bar(stat="identity", color=colors2[4], fill=paste0(colors2[4],"CC"))+
+        theme_test() +
+        theme(axis.text=element_text(size=13), axis.title.y=element_text(size=13))+
+        theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5))+
+        theme(panel.grid.major.y = element_line(color="gray80",linetype=5))+
+        labs(x="", y="Estimated effects (%)")
+
+ggsave("Output1A/SummaryFig.Filtered/BetaRef.effects.pdf", width = 9, height = 6)
+
+####
+# Set up data 
+modcoef<-read.csv(paste0("Output1A/GLM/BetaReg_BestModel.Q35.csv"),stringsAsFactors = F)
+rownames(modcoef)<-modcoef$X
+modcoef<-modcoef[,-1]
+coef.vals <- modcoef[,1]
+coef.pSE.vals <- coef.vals + modcoef[,2]
+coef.mSE.vals <- coef.vals - modcoef[,2]
+
+d<-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv",row.names = 1)
+d<-d[d$pos>=342,c("pos","mean","ref","Type","makesCpG","bigAAChange")]
+
+genes<-read.csv("Data/HCV_annotations2.csv",stringsAsFactors = F)
+genes$Gene[genes$Gene=="NS1(P7)"]<-"NS1"
+gene.vector<-c()
+for (i in 1:(nrow(genes)-1)){
+        gene.vector<-c(gene.vector, rep(genes$Gene[i],times=genes$start[i+1]-genes$start[i]))
+}
+genetable<-data.frame("pos"=c(1:length(gene.vector)))
+genetable$gene<-gene.vector
+
+d<-merge(d, genetable, by="pos")
+
+#pdf(paste0("Output1A/GLM/Mod_best.pdf"),width=10.5,height=7.5)
+#par(mar = c(4, 4.5, 1.5, 1))
+#makePlot.axisbreak(main =expression("T" %->% "C : Core"))
+pdf("Output1A/GLM/TtoC.2genes.pdf", width = 5.5, height = 6)
+
+col.par <- "gray95"
+layout(matrix(1:2, nrow = 1))
+par(mfrow=c(1,2), mai = c(.5, 0.7, .5, 0.1))
+makePlot1(main=expression("T" %->% "C : Core"))
+
+#plotPoints(NT,NsOrNo, CpGorNo, Core, HVR1,colVal, offset)
+plotDots("T",0,0,1,0, paste0(colors2[1],"66"),  -.1)
+plotDots("T",0,1,1,0, paste0(colors2[4],"66"),  .1)
+plotDots("T",1,0,1,0, paste0(colors2[1],"66"),  -.1)
+plotDots("T",1,1,1,0, paste0(colors2[4],"66"),  .1)
+
+plotPoint("T",0,0,1,0, colors2[1], -.1)
+plotPoint("T",0,1,1,0, colors2[4], .1)
+plotPoint("T",1,0,1,0, colors2[1], -.1)
+plotPoint("T",1,1,1,0, colors2[4], .1)
+
+
+makePlot2(main=expression("T" %->% "C : HVR1"))
+legend("bottomright", c("nonCpG", "CpG"), col = colors2[c(1,4)], pch = 16, bg = "white", cex=.7, bty = "n" )
+
+plotDots("T",0,0,0,1, paste0(colors2[1],"66"),  -.1)
+plotDots("T",0,1,0,1, paste0(colors2[4],"66"),  .1)
+plotDots("T",1,0,0,1, paste0(colors2[1],"66"),  -.1)
+plotDots("T",1,1,0,1, paste0(colors2[4],"66"),  .1)
+
+plotPoint("T",0,0,0,1, colors2[1], -.1)
+plotPoint("T",0,1,0,1, colors2[4], .1)
+plotPoint("T",1,0,0,1, colors2[1], -.1)
+plotPoint("T",1,1,0,1, colors2[4], .1)
+dev.off()
+
+###
+pdf("Output1A/GLM/AtoG.2genes.pdf", width = 5.5, height = 6)
+layout(matrix(1:2, nrow = 1))
+par(mfrow=c(1,2), mai = c(.5, 0.7, .5, 0.1))
+makePlot1(main=expression("A" %->% "G : Core"))
+
+#plotPoints(NT,NsOrNo, CpGorNo, Core, HVR1,colVal, offset)
+plotDots("A",0,0,1,0, paste0(colors2[1],"66"),  -.1)
+plotDots("A",0,1,1,0, paste0(colors2[4],"66"),  .1)
+plotDots("A",1,0,1,0, paste0(colors2[1],"66"),  -.1)
+plotDots("A",1,1,1,0, paste0(colors2[4],"66"),  .1)
+
+plotPoint("A",0,0,1,0, colors2[1], -.1)
+plotPoint("A",0,1,1,0, colors2[4], .1)
+plotPoint("A",1,0,1,0, colors2[1], -.1)
+plotPoint("A",1,1,1,0, colors2[4], .1)
+
+
+makePlot2(main=expression("A" %->% "G : HVR1"))
+legend("bottomright", c("nonCpG", "CpG"), col = colors2[c(1,4)], pch = 16, bg = "white", cex=.7, bty = "n" )
+
+plotDots("A",0,0,0,1, paste0(colors2[1],"66"),  -.1)
+plotDots("A",0,1,0,1, paste0(colors2[4],"66"),  .1)
+plotDots("A",1,0,0,1, paste0(colors2[1],"66"),  -.1)
+plotDots("A",1,1,0,1, paste0(colors2[4],"66"),  .1)
+
+plotPoint("A",0,0,0,1, colors2[1], -.1)
+plotPoint("A",0,1,0,1, colors2[4], .1)
+plotPoint("A",1,0,0,1, colors2[1], -.1)
+plotPoint("A",1,1,0,1, colors2[4], .1)
+
+dev.off()
+
+
+#Test
+library(MASS)
+library(DescTools)
+
+eff1A<-effects2[effects2$genotype=="1A",c("factor","effect")]
+
+eff3A<-effects2[effects2$genotype=="3A",c("factor","effect")]
+#chisquare test
+eff.table<-eff1A
+row.names(eff.table)<-eff.table$factor 
+eff.table$Geno1B<-eff3A$effect
+colnames(eff.table)[2]<-"Geno1A"
+eff.table<-eff.table[,-1]
+
+chisq.test(eff.table)
+#X-squared = 0.00069968, df = 16, p-value = 1
 
 
 
