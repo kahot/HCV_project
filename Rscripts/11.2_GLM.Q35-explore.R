@@ -41,13 +41,13 @@ colnames(glmData)[co]<-"NS1"
 
 write.csv(glmData,paste0("Output1A/GLM/GlmdataFull.Ts.FilteredData.csv"))
 
-
+glmData<-read.csv("Output1A/GLM/BetaRegFull.Ts.FilteredData.csv", stringsAsFactors = F, row.names = 1)
 ################
 #2. run GLM
 mod1 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
-                        Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B, data = glmData[glmData$Stop == 0,])
+                        Core +E1 +HVR1++E2 +NS1 +NS2+NS3 +NS4A+NS5B, data = glmData[glmData$Stop == 0,])
 summary(mod1)
-AIC(mod1)
+AIC(mod1) #-75868.15
 
 #              Estimate Std. Error  z value Pr(>|z|)    
 #(Intercept) -4.4737177  0.0229838 -194.647  < 2e-16 ***
@@ -71,11 +71,13 @@ AIC(mod1)
 #c1:Nonsyn1  -0.1431568  0.0277536   -5.158 2.49e-07 ***
 #g1:Nonsyn1   0.0929057  0.0286821    3.239   0.0012 ** 
 
-m2<-update(mod1,~. -NS1 )
-AIC(m2)
+m2<-update(mod1,~. -NS3 )
+AIC(m2) #-75870.06
 summary(m2)
-m3<-update(m2,~. -NS3)
-AIC(m3)
+
+
+m3<-update(m2,~. -NS4A)
+AIC(m3)#-75869.38
 summary(m3)
 m4<-update(m3,~. -NS4A)
 AIC(m4) #-75869.38  #best values
@@ -96,9 +98,26 @@ modcoef<-summary$coefficients
 coef1<-modcoef[[1]]
 write.csv(coef1,"Output1A/GLM/BetaReg_BestModel.Q35.csv")
 
+#### include more interaction
 
+mod1 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
+                        Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B , data = glmData[glmData$Stop == 0,])
+summary(mod1)
+AIC(mod1)
 
+m2<-update(mod1,~. -NS5A )
+AIC(m2)
+summary(m2)
+m3<-update(m2,~. -NS3)
+AIC(m3)
+summary(m3)
+m4<-update(m3,~. -NS4A)
+AIC(m4) #-75869.38  #best values
+summary(m4)
 
+m5<-update(m4, ~. -NS1)
+AIC(m5)
+AIC(mod1,m2,m3,m4)
 
 
 ####include Stop

@@ -46,11 +46,11 @@ write.csv(betar,paste0("Output1A/GLM/BetaRegFull.Ts.FilteredData.csv"))
 betar<-read.csv("Output1A/GLM/BetaRegFull.Ts.FilteredData.csv", stringsAsFactors = F, row.names = 1)
 
 ################
-#2. run GLM
+#2. run Beta Regression
 mod.g1 <- betareg(mean ~ t + c + g + CpG  + t:Nonsyn + c:Nonsyn + g:Nonsyn + Nonsyn +bigAAChange + 
-                        Core +E1 +HVR1++E2 +NS1 +NS2++NS3 +NS4A+NS5A+NS5B, data = betar[betar$Stop == 0,])
+                        Core +E1 +HVR1++E2 +NS1 +NS2+NS3+NS4A+NS5A+NS5B, data = betar[betar$Stop == 0,])
+AIC(mod.g1) #-75866.15
 summary(mod.g1)
-
 #using the new data = same results!
 #              Estimate Std. Error  z value Pr(>|z|)    
 #(Intercept) -4.4737177  0.0229838 -194.647  < 2e-16 ***
@@ -75,40 +75,9 @@ summary(mod.g1)
 #g1:Nonsyn1   0.0929057  0.0286821    3.239   0.0012 ** 
 
 
-#Q35 -ORIGINAL
-#             Estimate Std. Error  z value Pr(>|z|)    
-#(Intercept) -4.4737177  0.0229838 -194.647  < 2e-16 ***
-#t            0.1157091  0.0208632    5.546 2.92e-08 ***
-#c           -0.5323171  0.0205090  -25.955  < 2e-16 ***
-#g           -0.7220995  0.0229500  -31.464  < 2e-16 ***
-#CpG         -0.0725060  0.0134435   -5.393 6.91e-08 ***
-#Nonsyn      -0.7585679  0.0223505  -33.940  < 2e-16 ***
-#bigAAChange -0.1249080  0.0140548   -8.887  < 2e-16 ***
-#Core        -0.2152590  0.0240976   -8.933  < 2e-16 ***
-#E1           0.0390887  0.0227549    1.718   0.0858 .  
-#HVR1         0.2373264  0.0482918    4.914 8.90e-07 ***
-#E2           0.0859036  0.0197335    4.353 1.34e-05 ***
-#NS1          0.0714742  0.0330309    2.164   0.0305 *  
-#NS2          0.0911630  0.0218428    4.174 3.00e-05 ***
-#NS3          0.0035818  0.0179292    0.200   0.8417    
-#NS4A        -0.0542810  0.0372726   -1.456   0.1453    
-#NS5A        -0.0003067  0.0190949   -0.016   0.9872    
-#NS5B        -0.1615474  0.0207384   -7.790 6.71e-15 ***
-#t:Nonsyn    -0.1860138  0.0268162   -6.937 4.02e-12 ***
-#c:Nonsyn    -0.1431568  0.0277536   -5.158 2.49e-07 ***
-#g:Nonsyn     0.0929057  0.0286821    3.239   0.0012 ** 
-
-#hi coefficients (precision model with identity link):
-#      Estimate Std. Error z value Pr(>|z|)    
-#(phi)  1145.82      18.81   60.92   <2e-16 ***
-#Type of estimator: ML (maximum likelihood)
-#Log-likelihood: 3.795e+04 on 21 Df
-#Pseudo R-squared: 0.6124
-#Number of iterations: 36 (BFGS) + 3 (Fisher scoring)
-
-
 #remove the ns genes: NS3, and NS5A        
 mod.g2 <- update(mod.g1, ~. -NS3 - NS5A)
+AIC(mod.g2) # -75870.06  *** BEST MODEL
 summary(mod.g2)
 #(Intercept) -4.47210    0.01836 -243.547  < 2e-16 ***
 #t            0.11574    0.02086    5.548 2.89e-08 ***
@@ -131,8 +100,9 @@ summary(mod.g2)
 
 
 #remove the ns genes: NS3, NS4A, and MS5A
-mod.g2.2 <- update(mod.g1, ~. -NS3 -NS4A - NS5A)
-summary(mod.g2.2)
+mod2 <- update(mod.g1, ~. -NS3 -NS4A - NS5A)
+AIC(mod2) #-75869.38
+summary(mod2)
 #            Estimate Std. Error  z value Pr(>|z|)    
 #(Intercept) -4.47368    0.01834 -243.971  < 2e-16 ***
 #t            0.11525    0.02086    5.524 3.32e-08 ***
@@ -161,7 +131,7 @@ summary(mod.g2.2)
 #Pseudo R-squared: 0.6125
 #Number of iterations: 34 (BFGS) + 3 (Fisher scoring)         
 
-AIC(mod.g1,mod.g2,mod.g2.2)
+AIC(mod.g1,mod.g2,mod2)
 #         df       AIC
 #mod.g1   21 -75866.15
 #mod.g2   19 -75870.06

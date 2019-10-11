@@ -69,8 +69,9 @@ colnames(M)[33:35]<-c("MutAA","MutAA.tv1","MutAA.tv2")
 for (i in 1:5) {
         dat<-get(files[i])
         dat$mean<-rowMeans(dat[2:(s+1)],na.rm=T, dims=)
-        if(i==1|i==2|i==3) muttypes<-M[,c("pos","ref", paste0("Type",cnames[i]),"WTAA",paste0("MutAA",cnames[i]), paste0("makesCpG",cnames[i]), paste0("bigAAChange",cnames[i]))]
-        if(i==4|i==5) muttypes<-M[,c("pos","ref","Type","WTAA","MutAA","makesCpG","bigAAChange")]
+        if (i==1|i==5) muttypes<-M[,c("pos","ref", "Type","WTAA","MutAA","makesCpG","bigAAChange")]
+        if(i==2|i==3) muttypes<-M[,c("pos","ref", paste0("Type",cnames[i]),"WTAA",paste0("MutAA",cnames[i]), paste0("makesCpG",cnames[i]), paste0("bigAAChange",cnames[i]))]
+        if(i==4) muttypes<-M[,c("pos","ref","Type.tv1","Type.tv2","WTAA","MutAA.tv1","MutAA.tv2","makesCpG.tv1","makesCpG.tv1","bigAAChange.tv1","bigAAChange.tv2")]
         
         dat2<-merge(dat,muttypes,by="pos")
         mf.files[[i]]<-dat2
@@ -80,47 +81,73 @@ for (i in 1:5) {
         write.csv(dat2,paste0("Output1A/MutFreq.filtered/Filtered.",files[i],".Q35.csv"))
 }
 
+#####
+#read in files
+Ts<-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv",row.names = 1,stringsAsFactors = F)
+Tv1.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tv1.MutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
+Tv2.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tv2.MutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
+Tvs.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tvs.MutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
+AllMutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.AllMutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
+###
 
-#AllMutFreq.F<-read.csv("Output1A/MutFreq.filtered/Filtered.AllMutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
+
 
 ##### Chceck the mean mut freq
+#Summarize the mean and se for all types of mutations
 
-mean(rowMeans(Ts.F[,2:(s+1)],na.rm=T),na.rm=T)   # 0.004804249 (Q35),  0.005549325 (Q30 reads<1000)
-mean(rowMeans(Tvs.MutFreq.F[,2:(s+1)],na.rm=T),na.rm=T) # 0.0009677105 (Q35),   0.001138303 (Q30 reads<1000)
+tb<-data.frame(type=c("Ts","Ts.syn","Ts.ns","Ts.stop", "Tv1","Tv1.syn","Tv1.ns","Tv1.stop","Tv2","Tv2.syn","Tv2.ns","Tv2.stop","Tvs","All" ))
+files<-c("Ts","Tv1.MutFreq","Tv2.MutFreq","Tvs.MutFreq","AllMutFreq" )
 
-mean(rowMeans(AllMutFreq.F[,2:(s+1)],na.rm=T),na.rm=T) #0.005771959
+for (i in 1:length(files)){
+        dt<-mf.files[[i]]
+        #coding region only
+        dt<-dt[dt$pos>341,]
+        
+        if (i<=3){
+                colnames(dt)[199]<-"Type"
+                k<-(i-1)*4+1
+                tb$mean[k]<-mean(dt$mean,na.rm=T)
+                tb$se[k]<-std.error(dt$mean,na.rm=T)
+                k<-k+1
+                tb$mean[k]<-mean(dt$mean[dt$Type=="syn"],na.rm=T)
+                tb$se[k]<-std.error(dt$mean[dt$Type=="syn"],na.rm=T)
+                k<-k+1
+                tb$mean[k]<-mean(dt$mean[dt$Type=="nonsyn"],na.rm=T)
+                tb$se[k]<-std.error(dt$mean[dt$Type=="nonsyn"],na.rm=T)
+                k<-k+1
+                tb$mean[k]<-mean(dt$mean[dt$Type=="stop"],na.rm=T)
+                tb$se[k]<-std.error(dt$mean[dt$Type=="stop"],na.rm=T)
+        }
+        
+        if (i==4) {k=13
+                tb$mean[k]<-mean(dt$mean,na.rm=T)
+                tb$se[k]<-std.error(dt$mean,na.rm=T)}
+        if (i==5) {k=14
+                tb$mean[k]<-mean(dt$mean,na.rm=T)
+                tb$se[k]<-std.error(dt$mean,na.rm=T)}
+}
 
-std.error(AllMutFreq.F$mean) # 4.563061e-05
-std.error(Ts.F$mean) # 4.241551e-05
-std.error(Tvs.MutFreq.F$mean) #9.613703e-06
-#coding regions only
-TMutFreq2.F<-Ts.F[Ts.F$pos>=342,]
-mean(TMutFreq2.F$mean, na.rm=T) #  0.004831417
-#Syn vs NonSyn
-mean(TMutFreq2.F$mean[TMutFreq2.F$Type=="syn"], na.rm=T) #  0.008093379
-mean(TMutFreq2.F$mean[TMutFreq2.F$Type=="nonsyn"], na.rm=T) # 0.003351718
+tb$type<-as.character(tb$type)
+
+addtb<-data.frame(type=c("tvs.syn","tvs.ns","tvs.stop", "all.syn","all.ns","all.stop"),
+                    mean=c(mean(tb$mean[6],tb$mean[10]),mean(tb$mean[7],tb$mean[11]),mean(tb$mean[8],tb$mean[12]),
+                           mean(tb$mean[2],tb$mean[6],tb$mean[10]),mean(tb$mean[3],tb$mean[7],tb$mean[11]),mean(tb$mean[4],tb$mean[8],tb$mean[12])),
+                    se  =c(mean(tb$se[6],tb$se[10]),mean(tb$se[7],tb$se[11]),mean(tb$se[8],tb$se[12]),
+                           mean(tb$se[2],tb$se[6],tb$se[10]),mean(tb$se[3],tb$se[7],tb$se[11]),mean(tb$se[4],tb$se[8],tb$se[12])))
+
+tb2<-rbind(tb, addtb)
+
+write.csv(tb2, "Output1A/MutFreq.filtered/MF.Mean.SE.summary.csv")
 
 
 
-
-#Transition mutations
-mean(Ts$mean[Ts$Type=="syn"], na.rm=T) #  0.0075788315 (Q35), #0.00911283 (Q30)
-mean(Ts$mean[Ts$Type=="nonsyn"],na.rm=T) # 0.00329428(Q350,  #0.003973061 (Q30)
-mean(Ts$mean[Ts$Type=="stop"],na.rm=T)  #0.001928567
-
-mean(Ts$mean[Ts$Type=="syn"&Ts$makesCpG==0],na.rm=T)  #0.007185474
-mean(Ts$mean[Ts$Type=="syn"&Ts$makesCpG==1],na.rm=T)  #0.01091608
-
-mean(Ts$mean[Ts$Type=="nonsyn"&Ts$makesCpG==0],na.rm=T) #0.004844019
-mean(Ts$mean[Ts$Type=="nonsyn"&Ts$makesCpG==1],na.rm=T) # 0.004355802
-
-
+#####
 #compare the Q30 and Q35 mut freq
 #Q30 mut freq
-q30<-read.csv("Output/1Amut.freq.filtered/Summary_TsMutFreq.csv",stringsAsFactors = F)
-r1<-wilcox.test(Ts$mean[Ts$Type=="syn"], q30$mean[q30$Type=="syn"], alternative = "less", paired = FALSE) 
+#q30<-read.csv("Output1A/mut.freq.filtered/Summary_TsMutFreq.csv",stringsAsFactors = F)
+#r1<-wilcox.test(Ts$mean[Ts$Type=="syn"], q30$mean[q30$Type=="syn"], alternative = "less", paired = FALSE) 
 #W = 2011800, p-value < 2.2e-16
-r1[3]  # p.value =  5.283758e-24
+#r1[3]  # p.value =  5.283758e-24
 
 
 

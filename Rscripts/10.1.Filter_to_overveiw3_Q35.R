@@ -50,21 +50,21 @@ for (i in 1:length(T_Freq_all)) {
 
 TMutFreq<-T_Freq_all %>% purrr::reduce(full_join, by='pos') #8537 sites
 
-write.csv(TMutFreq, "Output1A/MutFreq.filtered/Ts_MutFreq_1A_all.csv")
+#write.csv(TMutFreq, "Output1A/MutFreq.filtered/Ts_MutFreq_1A_all.csv")
 
 
 ##### Check the results   ####
-        ### Calculate mean transition mut. freq
-        mean(rowMeans(TMutFreq[2:196],na.rm=T),na.rm=T) 
-        TMutFreq$mean<-rowMeans(TMutFreq[2:196],na.rm=T)
-        mean(TMutFreq$mean[TMutFreq$pos>=342],na.rm=T) # 0.005157235
-        
-        dat<-FilteredOverview1[[1]]
-        dat<-dat[,c(1,4,5,20,23,27,31,32,33,36,39)]
-        TMutFreq<-merge(TMutFreq,dat, by="pos")        
-        #Syn vs NonSyn
-        mean(TMutFreq$mean[TMutFreq$Type=="syn" & TMutFreq$pos>=342], na.rm=T) # 0.007561845
-        mean(TMutFreq$mean[TMutFreq$Type=="nonsyn"& TMutFreq$pos>=342], na.rm=T) # 0.003308032
+#       ### Calculate mean transition mut. freq
+#       mean(rowMeans(TMutFreq[2:196],na.rm=T),na.rm=T) 
+#       TMutFreq$mean<-rowMeans(TMutFreq[2:196],na.rm=T)
+#       mean(TMutFreq$mean[TMutFreq$pos>=342],na.rm=T) # 0.005157235
+#       
+#       dat<-FilteredOverview1[[1]]
+#       dat<-dat[,c(1,4,5,20,23,27,31,32,33,36,39)]
+#       TMutFreq<-merge(TMutFreq,dat, by="pos")        
+#       #Syn vs NonSyn
+#       mean(TMutFreq$mean[TMutFreq$Type=="syn" & TMutFreq$pos>=342], na.rm=T) # 0.007561845
+#       mean(TMutFreq$mean[TMutFreq$Type=="nonsyn"& TMutFreq$pos>=342], na.rm=T) # 0.003308032
 
 ###  Remove the sites with >50% NA in mutation frequency in FilteredOverview1 files, 
 s<-length(FilteredOverview1)
