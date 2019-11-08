@@ -1,0 +1,39 @@
+[1] "1A-1B"
+[1] "Transition"
+$p.value
+[1] 4.623662e-18
+
+[1] "Transversion"
+$p.value
+[1] 2.191749e-30
+
+[1] "Total"
+$p.value
+[1] 3.892474e-22
+
+[1] "1A-3A"
+[1] "Transition"
+$p.value
+[1] 5.445805e-23
+
+[1] "Transversion"
+$p.value
+[1] 7.819815e-104
+
+[1] "Total"
+$p.value
+[1] 2.285575e-37
+
+[1] "1B-3A"
+[1] "Transition"
+$p.value
+[1] 0.1606904
+
+[1] "Transversion"
+$p.value
+[1] 1.639254e-30
+
+[1] "Total"
+$p.value
+[1] 0.001043338
+

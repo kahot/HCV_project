@@ -1,0 +1,8 @@
+[1] "Sites with MF higher in 1A"
+
+     nonsyn        stop         syn 
+0.155875300 0.002398082 0.841726619 
+[1] "Sites with MF higher in 1B"
+
+   nonsyn       syn 
+0.2115385 0.7884615 
