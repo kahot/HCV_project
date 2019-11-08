@@ -1,3 +1,30 @@
+<<<<<<< HEAD
+=======
+makePlot.axisbreak <- function(main){
+        
+        plot(0, type = "n", xlim = c(.5, 4.5), ylim = c(0.00004, .1), axes = FALSE, ylab = "Mutation frequency", xlab = "Mutation type", main = main, log = "y")
+        
+        col.par <- "gray95"
+        #    abline(h = seq(0, .15, by = .025), col = col.par)
+        abline(h = (1:9)*10^(-1), col = col.par)
+        abline(h = (1:9)*10^(-2), col = col.par)
+        abline(h = (1:9)*10^(-3), col = col.par)
+        abline(h = (1:9)*10^(-4), col = col.par)
+        abline(h = (1:2)*10^(-5), col = col.par)
+        abline(h = (1)*10^(-4.4), col = col.par)
+        box()
+        
+        axislabs <- c(expression("A" %->% "G"), expression("T" %->% "C"), expression("C" %->% "T"), expression("G" %->% "A"))
+        axis(1, at = 1:4, axislabs)
+        eaxis(2, at = 10^c(-1*(0:4)))
+        axis(2, at = 10^(-4.4), label = c("0"), las = 2)
+        axis.break(2,2*10^-(4.5),style="slash")
+        
+        
+}
+
+
+>>>>>>> Updated analysis scrits
 makePlot1 <- function(main){
 plot(0, type = "n", xlim = c(.5, 2.5), ylim = c(0.0004, .1), axes = FALSE, 
         ylab = "", xlab = "", main = main, log = "y")

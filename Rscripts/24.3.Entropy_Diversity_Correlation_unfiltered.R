@@ -12,7 +12,7 @@ geno<-c("1A","1B","3A")
 
 for (g in 1:3){
        entropy<-read.table(paste0("Data/HCV",geno[g],"_logo_data.txt"))
-       colnames(entoropy)<-c("pos","A","C","G","T","Entropy","Low","High","Weight")
+       colnames(entropy)<-c("pos","A","C","G","T","Entropy","Low","High","Weight")
        
        mutfreq<-read.csv(paste0("Output",geno[g],"/MutFreq/Ave.MF.Total_Mutations_",geno[g],".csv"), stringsAsFactors = F)
        mutfreq<-mutfreq[,-1]
@@ -77,6 +77,70 @@ max(comparison$mean)
 text(x=max(comparison$mean)-0.015,y=-0.2, labels=paste0("rho = ",rho,star),cex=1.1)
 
 dev.off()
+
+####
+#NCBI HCV1A sequences (423 sequences, coding sequnces only)
+g=1
+entropy<-read.table(paste0("Data/HCV1A_NCBI.logo.data.txt"))
+colnames(entropy)<-c("pos","A","C","G","T","Entropy","Low","High","Weight")
+entropy$pos<-342:(nrow(entropy)+341)
+
+mutfreq<-read.csv(paste0("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv"), row.names = 1, stringsAsFactors = F)
+mutfreq<-mutfreq[,c("pos","mean")]
+comparison<-merge(entropy,mutfreq, by="pos")
+results<-cor.test(comparison$Entropy,comparison$mean, method = "spearman")
+print(results)
+#data:  comparison$Entropy and comparison$mean
+#S = 1.4116e+11,  p-value < 2.2e-16
+#alternative hypothesis: true rho is not equal to 0
+#sample estimates:
+#        rho 
+#-0.6805877
+
+mvf<-read.csv("Output_all/Unfiltered/Ts.MinorVariant_Mean_metadata.1A.csv", row.names = 1, stringsAsFactors = F)
+mvf<-mvf[,c("org.pos.1A","mean.1A")]
+colnames(mvf)[1]<-c("pos","mean")
+comparison1<-merge(entropy,mvf, by="pos")
+results<-cor.test(comparison1$Entropy,comparison1$mean, method = "spearman")
+print(results)
+#S = 1.6616e+11, p-value < 2.2e-16
+#        rho 
+#-0.7858632 
+
+
+
+#Filtered mut freq vs. Entropy
+pdf(paste0("Output1A/SummaryFig.Filtered/Entropy-MutFreq.1A.pdf"))
+plot(comparison$mean,-(comparison$Entropy), ylab="", xlab="",
+     pch=16,col=colors2[5],cex=0.6, cex.axis=1.2)
+mtext("In vivo diversity (mean mutation frequency)",1,2.2, cex=1.2)
+mtext("Among host diversity (-Shannon's entropy)",2,2.2, cex=1.2)
+abline(lm(-(comparison$Entropy)~comparison$mean), col = "gray70")
+rho<-as.numeric(results[[4]])
+rho<-format(round(rho,3), nsmall=3)
+if (results[[3]]>=0.05) star<-""
+if (results[[3]]<0.05&results[[3]]>=0.01) star<-"*"
+if (results[[3]]<0.01&results[[3]]>=0.001) star<-"**"
+if (results[[3]]<0.001) star<-"***"
+text(x=max(comparison$mean, na.rm=T)-0.005,y=-1.2, labels=paste0("rho = ",rho,star),cex=1.1)
+dev.off()
+
+#unfiltered minor variant freq vs. Entropy
+pdf(paste0("Output1A/SummaryFig.Filtered/Entropy-MVF.1A.pdf"))
+plot(comparison1$mean,-(comparison1$Entropy), ylab="", xlab="",
+     pch=16,col=colors2[5],cex=0.6, cex.axis=1.2)
+mtext("In vivo diversity (mean mutation frequency)",1,2.2, cex=1.2)
+mtext("Among host diversity (-Shannon's entropy)",2,2.2, cex=1.2)
+abline(lm(-(comparison1$Entropy)~comparison1$mean), col = "gray70")
+rho<-as.numeric(results[[4]])
+rho<-format(round(rho,3), nsmall=3)
+if (results[[3]]>=0.05) star<-""
+if (results[[3]]<0.05&results[[3]]>=0.01) star<-"*"
+if (results[[3]]<0.01&results[[3]]>=0.001) star<-"**"
+if (results[[3]]<0.001) star<-"***"
+text(x=max(comparison1$mean, na.rm=T)-0.015,y=-1.2, labels=paste0("rho = ",rho,star),cex=1.1)
+dev.off()
+
 
 
 ##############

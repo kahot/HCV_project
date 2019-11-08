@@ -10,10 +10,15 @@ source("Rscripts/EstimateMF.R")
 cols3<-c("#009988CC" ,"#66CCEECC", "#EE6677CC", "#4477AACC")
 
 ####
-data<-read.csv("Output1A/GLM/GlmdataFull.Ts.Q35.csv", stringsAsFactors = F, row.names = 1)
+data<-read.csv("Output1A/GLM/BetaRegFull.Ts.FilteredData.csv", stringsAsFactors = F, row.names = 1)
 
 #If run previously, read the EstimatedMF and skip to "Create the summary data frame" 
+<<<<<<< HEAD
 #data<-read.csv("Output1A/GLM/Ts.with.EstimatedMF.csv",stringsAsFactors = F)
+=======
+data<-read.csv("Output1A/GLM/Ts.with.EstimatedMF.csv",stringsAsFactors = F)
+#####
+>>>>>>> Updated analysis scrits
 
 ##add the codon position
 vec<-data.frame('pos'= 342:8609)
@@ -70,6 +75,11 @@ plot(data$diff,pch=".", col="#66CCEE", cex=1, ylab="Expected - Observed mut freq
 dev.off()
 
 
+<<<<<<< HEAD
+=======
+
+####
+>>>>>>> Updated analysis scrits
 #### Create the summary data based on mutation type
 MFdiff<-data.frame("Mutation Type"= c("Overall", "Syn","Nonsyn", "Syn-CpG", "Syn-nonCpG","NS-CpG","NS-nonCPG"))
 MFdiff$Mean.diff<-c(mean(data$diff),mean(data$diff[data$Syn==1]),mean(data$diff[data$Nonsyn==1]), 
@@ -117,7 +127,7 @@ data$top5<-sapply(data$diff,function(x){ if (x>min(data2$diff)) x=x
 else x<-NA})
 plot(data2$pos, data2$diff,pch=16, col="#66CCEE", cex=.5)
 #write.csv(data, "Output1A/GLM/Ts.with.EstimatedMF.csv",row.names = F)
-
+dev.off()
 
 
 #####  Look at the results by gene

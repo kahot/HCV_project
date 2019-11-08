@@ -3,6 +3,8 @@ library(reshape)
 library(tidyverse)
 library(zoo)
 library(purrr)
+library(colorspace)
+colors2<-qualitative_hcl(6, palette="Dark3")
 
 
 #Create the filtered mut frequency table of all samples 
@@ -76,8 +78,8 @@ for (i in 1:5) {
         dat2<-merge(dat,muttypes,by="pos")
         mf.files[[i]]<-dat2
         names(mf.files)[i]<-files[i]
-        dfname<-paste0(files[i],".F")
-        assign(dfname, dat2)
+        #dfname<-paste0(files[i],".F")
+        #assign(dfname, dat2)
         write.csv(dat2,paste0("Output1A/MutFreq.filtered/Filtered.",files[i],".Q35.csv"))
 }
 
@@ -91,10 +93,30 @@ AllMutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.AllMutFreq.Q35.csv",row
 ###
 
 
+<<<<<<< HEAD
 
 ##### Chceck the mean mut freq
 #Summarize the mean and se for all types of mutations
 
+=======
+##############################
+##############################
+#read in files
+files<-c("Ts","Tv1.MutFreq","Tv2.MutFreq","Tvs.MutFreq","AllMutFreq")
+mf.files<-list()
+for (i in 1:5){
+        data<-read.csv(paste0("Output1A/MutFreq.filtered/Filtered.", files[i],".Q35.csv"),row.names = 1,stringsAsFactors = F)
+        assign(paste0(files[i]),data)
+        mf.files[[i]]<-data
+        names(mf.files)[i]<-files[i]
+}
+
+
+
+##### Chceck the mean mut freq
+#Summarize the mean and se for all types of mutations
+
+>>>>>>> Updated analysis scrits
 tb<-data.frame(type=c("Ts","Ts.syn","Ts.ns","Ts.stop", "Tv1","Tv1.syn","Tv1.ns","Tv1.stop","Tv2","Tv2.syn","Tv2.ns","Tv2.stop","Tvs","All" ))
 files<-c("Ts","Tv1.MutFreq","Tv2.MutFreq","Tvs.MutFreq","AllMutFreq" )
 
@@ -148,7 +170,82 @@ write.csv(tb2, "Output1A/MutFreq.filtered/MF.Mean.SE.summary.csv")
 #r1<-wilcox.test(Ts$mean[Ts$Type=="syn"], q30$mean[q30$Type=="syn"], alternative = "less", paired = FALSE) 
 #W = 2011800, p-value < 2.2e-16
 #r1[3]  # p.value =  5.283758e-24
+<<<<<<< HEAD
+=======
+
+
+######
+
+## Create a summary plot
+Ts<-Ts[Ts$pos>=342, ]
+
+summary<-data.frame(Mutation=rep("Transition", times=4), Type=c("All", "Syn", "Nonsyn", "Nonsense"), 
+                    Mean=c(mean(Ts$mean, na.rm=T), mean(Ts$mean[Ts$Type=="syn"]), mean(Ts$mean[Ts$Type=="nonsyn"]), mean(Ts$mean[Ts$Type=="stop"])),
+                    SE= c(std.error(Ts$mean, na.rm=T), std.error(Ts$mean[Ts$Type=="syn"]),std.error(Ts$mean[Ts$Type=="nonsyn"]), std.error(Ts$mean[Ts$Type=="stop"])))
+>>>>>>> Updated analysis scrits
+
+# Ave. mut freq all
+al<-mf.files[[5]]
+mean(al$mean) #0.005771959
+
+tvs<-mf.files[[4]]
+tvs<-tvs[tvs$pos>=342,]
+mean(tvs$mean) #0.0009650088
+
+#Transversion with mean
+Tv1<-Tv1.MutFreq
+Tv1<-Tv1[Tv1$pos>=342, ]
+Tv2<-Tv2.MutFreq
+Tv2<-Tv2[Tv2$pos>=342, ]
+
+All<-c(Tv1$mean,Tv2$mean) #0.0004825044
+Syn<-c(Tv1$mean[Tv1$Type.tv1=="syn"],Tv2$mean[Tv2$Type.tv2=="syn"])
+Nonsyn <- c(Tv1$mean[Tv1$Type.tv1=="nonsyn"],Tv2$mean[Tv2$Type.tv2=="nonsyn"])
+Stop <- c(Tv1$mean[Tv1$Type.tv1=="stop"],Tv2$mean[Tv2$Type.tv2=="stop"])
+
+summary2<-data.frame(Mutation=rep("Tranversion", times=4), Type=c("All", "Syn", "Nonsyn", "Nonsense"), 
+                     Mean=c(mean(All), mean(Syn), mean(Nonsyn), mean(Stop)),
+                     SE= c(std.error(All), std.error(Syn), std.error(Nonsyn),std.error(Stop)))
+
+Summary<-rbind(summary, summary2)
+Summary$Type<-factor(Summary$Type, levels=c("All", "Syn","Nonsyn","Nonsense"))
+
+ggplot(Summary,aes(x=Type,y=Mean, ymin=Mean-SE, ymax=Mean+SE, fill=Mutation))+
+        geom_bar(position=position_dodge(.9), stat="identity",width=0.8)+
+        scale_fill_manual(values=paste0(colors2[c(1,4)],"E6"), labels=c("Transition","Transversion"))+
+        geom_errorbar(position=position_dodge(.9), width=.2, color="gray30")+
+        theme(axis.title.x=element_blank())+ylab("Mean mutation frequency")+
+        theme_linedraw()+
+        labs(x="")+
+        theme(axis.text.x = element_text(size=12, angle=45, hjust=1),axis.title.y = element_text(size=12))+
+        geom_vline(xintercept = c(1:3)+0.5,  
+                   color = "gray60", size=.4)+
+        theme(panel.grid.major.x = element_blank(),
+              panel.grid.major.y = element_line(linetype=2, colour="gray60"),
+              panel.grid.minor.y = element_blank(),
+              legend.title = element_blank(),
+              legend.text = element_text(size=12))
+
+ggsave("Output1A/MutFreq.filtered/MeanMF.byTyep.pdf", width = 5, height = 3.4)
+ggsave("Output1A/MutFreq.filtered/MeanMF.byTyep_Presentation.pdf", width = 5, height = 2.8)
 
 
 
+### Read depth 
+Reads<-data.frame(Seq=names(FilteredOverview2))
 
+for (i in 1:length(FilteredOverview2)){
+        dat<-FilteredOverview2[[i]]
+        dat<-dat[!is.na(dat$freq.Ts),]
+        Reads$ave[i]<-mean(dat$TotalReads, na.rm=T) 
+        Reads$median[i]<-median(dat$TotalReads, na.rm = T)
+        Reads$max[i]<-max(dat$TotalReads, na.rm=T)
+        Reads$min[i]<-min(dat$TotalReads, na.rm=T)
+        
+}
+
+mean(Reads$ave)
+mean(Reads$median) #5282.449
+mean(Reads$max) #22005.66
+
+sum(Reads$ave>=5000)

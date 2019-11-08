@@ -50,6 +50,10 @@ r2<-wilcox.test(Ts$mean[Ts$Type=="nonsyn"], Ts$mean[Ts$Type=="stop"], alternativ
 r1[[3]]  #P=0
 r2[[3]]  #P= 1.933446e-41
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Updated analysis scrits
 #CpG creating vs Non-CpG creating
 T2<-Ts[Ts$ref=="a"|Ts$ref=="t",]
 r3<-wilcox.test(T2$mean[T2$Type=="syn"&T2$makesCpG==0], T2$mean[T2$Type=="syn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
@@ -160,19 +164,26 @@ for (i in c("a","t","c","g")) {
 } 
 write.csv(WilcoxTest.results.nt,paste0("Output1A/SummaryStats/WilcoxTestResults_Ts_eachNT_mean.csv"))
 
+al<-mf.files[[5]]
+mean(al$mean) #0.005771959
 
+tvs<-mf.files[[4]]
+tvs<-tvs[tvs$pos>=342,]
+mean(tvs$mean) #0.0009650088
 
 # 2) Transversion with mean ###
 ## 2.1) Summary Stats
-Tv1<-mf_filtered[[2]]
+Tv1<-mf.files[[2]]
 Tv1<-Tv1[Tv1$pos>=342, ]
-Tv2<-mf_filtered[[3]]
+Tv2<-mf.files[[3]]
 Tv2<-Tv2[Tv2$pos>=342, ]
 
+All<-c(Tv1$mean,Tv2$mean) #0.0004825044
 Syn<-c(Tv1$mean[Tv1$Type.tv1=="syn"],Tv2$mean[Tv2$Type.tv2=="syn"])
 Nonsyn <- c(Tv1$mean[Tv1$Type.tv1=="nonsyn"],Tv2$mean[Tv2$Type.tv2=="nonsyn"])
 Stop <- c(Tv1$mean[Tv1$Type.tv1=="stop"],Tv2$mean[Tv2$Type.tv2=="stop"])
 
+mean(All) #0.0004825044
 mean(Syn) #0.0007535948
 mean(Nonsyn) #0.0004099817
 mean(Stop) #0.0005612278
@@ -184,6 +195,7 @@ c(length(Nonsyn),length(Stop),length(Syn))
 std.error(Syn) # 1.508687e-05
 std.error(Nonsyn) # 4.921358e-06
 std.error(Stop) # 1.833373e-05
+
 
 r1<-wilcox.test(Syn, Nonsyn, alternative = "greater", paired = FALSE) 
 r2<-wilcox.test(Nonsyn, Stop, alternative = "greater", paired = FALSE) 

@@ -41,6 +41,7 @@ for (g in 1:3){
         
         #attached the metadata
         dt<-merge(dt, Summary, by="merged.pos")
+<<<<<<< HEAD
         dt<-dt[dt$Type.1A!="stop",]
         dt<-dt[dt$Type.1B!="stop",]
         dt<-dt[dt$Type.3A!="stop",]
@@ -49,11 +50,21 @@ for (g in 1:3){
         s<-as.integer(nrow(dt)*0.05)
         dt$diff<-dt[,paste0("mean.",g1)]-dt[,paste0("mean.",g2)]
         
+=======
+        dt<-dt[dt[,paste0("Type.",g1)]!="stop",]
+        dt<-dt[dt[,paste0("Type.",g2)]!="stop",]
+        
+        #top5%
+        dt$diff<-dt[,paste0("mean.",g1)]-dt[,paste0("mean.",g2)]
+        dt<-dt[!is.na(dt$diff),]
+        s<-as.integer(nrow(dt)*0.05)
+>>>>>>> Updated analysis scrits
         
         #select highest 5% Fst
         dt.top<-dt[order(dt$Fst,decreasing = T,na.last = T),]
         dt.top<-dt.top[c(1:s),]
         
+<<<<<<< HEAD
         #select sites with MF g1> g2 (costly sites in g2)
         dt1<-dt[dt$diff>0,]
         dt1.top<-dt1[order(dt1$Fst,decreasing = T,na.last = T),]
@@ -65,6 +76,26 @@ for (g in 1:3){
         dt2.top<-dt2.top[c(1:s),]
         
          
+=======
+        ##select sites with MF g1> g2 (costly sites in g2)
+        #dt1<-dt[dt$diff>0,]
+        #dt1.top<-dt1[order(dt1$Fst,decreasing = T,na.last = T),]
+        #dt1.top<-dt1.top[c(1:s),]
+        #
+        ##select sites with MF g1 < g2 (costly sites in g1)
+        #dt2<-dt[dt$diff<0,]
+        #dt2.top<-dt2[order(dt2$Fst,decreasing = T,na.last = T),]
+        #dt2.top<-dt2.top[c(1:s),]
+        
+        #save summary files
+        write.csv(dt.top, paste0("Output_all/Fst_T/HighFstSites_",fname,".csv"))
+        write.csv(dt,paste0("Output_all/Fst_T/Summary.Fst_",fname,".csv") )
+        
+        
+        s1<-nrow(dt.top[dt.top$diff>0,])
+        s2<-nrow(dt.top[dt.top$diff<0,])
+        
+>>>>>>> Updated analysis scrits
         #check proportion of sites belonging to each gene
         #1. all
         highFst1<-data.frame("Gene"= paste0(genes$Gene[1:12]), stringsAsFactors = FALSE)
@@ -73,16 +104,28 @@ for (g in 1:3){
         Dat<-dt[!is.na(dt$Fst),]
         for (i in 1:12){
                 n<-Dat[Dat$gene==genes$Gene[i],]
+<<<<<<< HEAD
                 df1<-dt1.top[dt1.top$gene==genes$Gene[i],]
                 df2<-dt2.top[dt2.top$gene==genes$Gene[i],]
                 highFst1$Counts[i]<-nrow(df1)
                 highFst1$Total[i]<-nrow(n)
                 highFst1$Expected[i]<-nrow(n)*s/nrow(Dat)
+=======
+                df1<-dt.top[dt.top$gene==genes$Gene[i]&dt.top$diff>0,] #costly in g2
+                df2<-dt.top[dt.top$gene==genes$Gene[i]&dt.top$diff<0,] #costly in g1
+                highFst1$Counts[i]<-nrow(df1)
+                highFst1$Total[i]<-nrow(n)
+                highFst1$Expected[i]<-nrow(n)*s1/nrow(Dat)
+>>>>>>> Updated analysis scrits
                 highFst1$Difference[i] <-(highFst1$Counts[i]-highFst1$Expected[i])/highFst1$Expected[i]*100
         
                 highFst2$Counts[i]<-nrow(df2)
                 highFst2$Total[i]<-nrow(n)
+<<<<<<< HEAD
                 highFst2$Expected[i]<-nrow(n)*s/nrow(Dat)
+=======
+                highFst2$Expected[i]<-nrow(n)*s2/nrow(Dat)
+>>>>>>> Updated analysis scrits
                 highFst2$Difference[i] <-(highFst2$Counts[i]-highFst2$Expected[i])/highFst2$Expected[i]*100
         }
         
@@ -118,18 +161,33 @@ for (g in 1:3){
         Gtest2$G[k]<-r2[[1]]
         Gtest2$Pvalue[k]<-r2[[3]]
         
+<<<<<<< HEAD
+=======
+        dt1.top<-dt.top[dt.top$diff>0,] #costly in g2
+        dt2.top<-dt.top[dt.top$diff<0,] #costly in g1
+        
+>>>>>>> Updated analysis scrits
     #AA
         #1. all
         DF1<-dt1.top
         DF2<-dt2.top
+<<<<<<< HEAD
+=======
+        
+>>>>>>> Updated analysis scrits
         aalist1<-DF1[,c("WTAA.1A","WTAA.1B","WTAA.3A")]
         aalist2<-DF2[,c("WTAA.1A","WTAA.1B","WTAA.3A")]
         
         # only look at the same AA sites
         sameAA1<-which(DF1[,paste0("WTAA.",g1)] == DF1[,paste0("WTAA.",g2)])
         sameAA2<-which(DF2[,paste0("WTAA.",g1)] == DF2[,paste0("WTAA.",g2)])
+<<<<<<< HEAD
         DF1<-dt1.top[sameAA1,]
         DF2<-dt2.top[sameAA2,]
+=======
+        DF1<-DF1[sameAA1,]
+        DF2<-DF2[sameAA2,]
+>>>>>>> Updated analysis scrits
         
         #same mutation types
         sametype1<-which(DF1[,paste0("Type.",g1)] == DF1[,paste0("Type.",g2)])
@@ -240,8 +298,13 @@ for (g in 1:3){
         
         n<-nrow(dt)
         types<-merge(types,gtypes, by="Type")
+<<<<<<< HEAD
         types[,paste0("diff.costly.",g1)]<-(types[,g1]-(types[,paste0("genome.",g1)]*s/n))/(types[,paste0("genome.",g1)]*s/n)*100
         types[,paste0("diff.costly.",g2)]<-(types[,g2]-(types[,paste0("genome.",g2)]*s/n))/(types[,paste0("genome.",g2)]*s/n)*100
+=======
+        types[,paste0("diff.costly.",g1)]<-(types[,g1]-(types[,paste0("genome.",g1)]*s1/n))/(types[,paste0("genome.",g1)]*s1/n)*100
+        types[,paste0("diff.costly.",g2)]<-(types[,g2]-(types[,paste0("genome.",g2)]*s2/n))/(types[,paste0("genome.",g2)]*s2/n)*100
+>>>>>>> Updated analysis scrits
         #types$difference<-rowMeans(types[,c("difference1", "difference2")])
         write.csv(types,paste0("Output_all/Fst_T/Types_", fname,".csv"))
         
@@ -267,9 +330,15 @@ for (g in 1:3){
         colnames(Codons1)<-c("codon","highFst", "genome")
         colnames(Codons2)<-c("codon","highFst", "genome")
         
+<<<<<<< HEAD
         Codons1$difference<-(Codons1$highFst-(Codons1$genome*s/n))/(Codons1$genome*s/n)*100
         write.csv(Codons1, paste0("Output_all/Fst_T/Codons.costly.in.",g2,"than",g1,".csv"))
         Codons2$difference<-(Codons2$highFst-(Codons2$genome*s/n))/(Codons2$genome*s/n)*100
+=======
+        Codons1$difference<-(Codons1$highFst-(Codons1$genome*s1/n))/(Codons1$genome*s1/n)*100
+        write.csv(Codons1, paste0("Output_all/Fst_T/Codons.costly.in.",g2,"than",g1,".csv"))
+        Codons2$difference<-(Codons2$highFst-(Codons2$genome*s2/n))/(Codons2$genome*s2/n)*100
+>>>>>>> Updated analysis scrits
         write.csv(Codons2, paste0("Output_all/Fst_T/Codons.in.",g1,"than",g2,".csv"))
         
         k=k+1
@@ -291,8 +360,13 @@ for (g in 1:3){
         colnames(Nt1)<-c("nucleotide","highFst", "genome")
         colnames(Nt2)<-c("nucleotide","highFst", "genome")
         
+<<<<<<< HEAD
         Nt1$difference<-(Nt1$highFst-(Nt1$genome*s/n))/(Nt1$genome*s/n)*100
         Nt2$difference<-(Nt2$highFst-(Nt2$genome*s/n))/(Nt2$genome*s/n)*100
+=======
+        Nt1$difference<-(Nt1$highFst-(Nt1$genome*s1/n))/(Nt1$genome*s1/n)*100
+        Nt2$difference<-(Nt2$highFst-(Nt2$genome*s2/n))/(Nt2$genome*s2/n)*100
+>>>>>>> Updated analysis scrits
         
         write.csv(Nt1,paste0("Output_all/Fst_T/NT.costly.in.",g2,".than.",g1,".csv"))
         write.csv(Nt2,paste0("Output_all/Fst_T/NT.costly.in.",g1,".than.",g2,".csv"))
@@ -318,8 +392,13 @@ for (g in 1:3){
         cpg2<-merge(cpg2,Gcpg2,by="Var1")
         colnames(cpg2)<-c("CpG",g1, "genome")
         
+<<<<<<< HEAD
         cpg1$diff<-(cpg1[,g2]-(cpg1[,"genome"]*s/n))/(cpg1[,"genome"]*s/n)*100
         cpg2$diff<-(cpg2[,g1]-(cpg2[,"genome"]*s/n))/(cpg2[,"genome"]*s/n)*100
+=======
+        cpg1$diff<-(cpg1[,g2]-(cpg1[,"genome"]*s1/n))/(cpg1[,"genome"]*s1/n)*100
+        cpg2$diff<-(cpg2[,g1]-(cpg2[,"genome"]*s2/n))/(cpg2[,"genome"]*s2/n)*100
+>>>>>>> Updated analysis scrits
         write.csv(cpg1,paste0("Output_all/Fst_T/CpG.costly.in.",g2,"than", g1, ".csv"))
         write.csv(cpg2,paste0("Output_all/Fst_T/CpG.costly.in.",g1,"than", g2, ".csv"))
         
