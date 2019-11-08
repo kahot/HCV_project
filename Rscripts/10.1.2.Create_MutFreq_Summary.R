@@ -83,22 +83,8 @@ for (i in 1:5) {
         write.csv(dat2,paste0("Output1A/MutFreq.filtered/Filtered.",files[i],".Q35.csv"))
 }
 
-#####
-#read in files
-Ts<-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv",row.names = 1,stringsAsFactors = F)
-Tv1.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tv1.MutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
-Tv2.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tv2.MutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
-Tvs.MutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.Tvs.MutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
-AllMutFreq<-read.csv("Output1A/MutFreq.filtered/Filtered.AllMutFreq.Q35.csv",row.names = 1,stringsAsFactors = F)
-###
 
 
-<<<<<<< HEAD
-
-##### Chceck the mean mut freq
-#Summarize the mean and se for all types of mutations
-
-=======
 ##############################
 ##############################
 #read in files
@@ -116,7 +102,6 @@ for (i in 1:5){
 ##### Chceck the mean mut freq
 #Summarize the mean and se for all types of mutations
 
->>>>>>> Updated analysis scrits
 tb<-data.frame(type=c("Ts","Ts.syn","Ts.ns","Ts.stop", "Tv1","Tv1.syn","Tv1.ns","Tv1.stop","Tv2","Tv2.syn","Tv2.ns","Tv2.stop","Tvs","All" ))
 files<-c("Ts","Tv1.MutFreq","Tv2.MutFreq","Tvs.MutFreq","AllMutFreq" )
 
@@ -170,8 +155,6 @@ write.csv(tb2, "Output1A/MutFreq.filtered/MF.Mean.SE.summary.csv")
 #r1<-wilcox.test(Ts$mean[Ts$Type=="syn"], q30$mean[q30$Type=="syn"], alternative = "less", paired = FALSE) 
 #W = 2011800, p-value < 2.2e-16
 #r1[3]  # p.value =  5.283758e-24
-<<<<<<< HEAD
-=======
 
 
 ######
@@ -182,7 +165,6 @@ Ts<-Ts[Ts$pos>=342, ]
 summary<-data.frame(Mutation=rep("Transition", times=4), Type=c("All", "Syn", "Nonsyn", "Nonsense"), 
                     Mean=c(mean(Ts$mean, na.rm=T), mean(Ts$mean[Ts$Type=="syn"]), mean(Ts$mean[Ts$Type=="nonsyn"]), mean(Ts$mean[Ts$Type=="stop"])),
                     SE= c(std.error(Ts$mean, na.rm=T), std.error(Ts$mean[Ts$Type=="syn"]),std.error(Ts$mean[Ts$Type=="nonsyn"]), std.error(Ts$mean[Ts$Type=="stop"])))
->>>>>>> Updated analysis scrits
 
 # Ave. mut freq all
 al<-mf.files[[5]]

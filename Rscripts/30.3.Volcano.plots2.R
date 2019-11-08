@@ -49,12 +49,7 @@ for (g in 1:2){
         dt.top<-dt[order(dt$Fst,decreasing = T,na.last = T),]
         dt.top<-dt.top[c(1:s),]
         
-<<<<<<< HEAD
-        write.csv(dt.top, paste0("Output_all/Fst_T/HighFstSites_",fname,".csv"))
-        write.csv(dt,paste0("Output_all/Fst_T/Summary.Fst_",fname,".csv") )
-=======
         
->>>>>>> Updated analysis scrits
         
         if (g==1) {col1<-colors2[1]; col2<-colors2[3]}
         if (g==2) {col1<-colors2[1]; col2<-colors2[5]}

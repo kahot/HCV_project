@@ -12,13 +12,8 @@ HCVFiles_overview3<-list.files("Output_all/Overview3/",pattern="overview3.csv")
 
 
 ####  Make Plots  #####
-<<<<<<< HEAD
-source("Rscripts/BetaRefPlotFunctions.R")
-
-=======
 
 source("Rscripts/GLMPlotFunctions.R")
->>>>>>> Updated analysis scrits
 #create alpha
 cols4.60<-paste0(cols4,"66")
         
@@ -104,8 +99,6 @@ genetable$gene<-gene.vector
 
 d<-merge(d, genetable, by="pos")
 
-<<<<<<< HEAD
-=======
 
 ####
 # plot syn vs nonsyn estiamted and observed mf
@@ -249,7 +242,6 @@ genetable$gene<-gene.vector
 
 d<-merge(d, genetable, by="pos")
 
->>>>>>> Updated analysis scrits
 #pdf(paste0("Output1A/GLM/Mod_best.pdf"),width=10.5,height=7.5)
 #par(mar = c(4, 4.5, 1.5, 1))
 #makePlot.axisbreak(main =expression("T" %->% "C : Core"))
@@ -286,14 +278,11 @@ plotPoint("T",1,0,0,1, colors2[1], -.1)
 plotPoint("T",1,1,0,1, colors2[4], .1)
 dev.off()
 
-<<<<<<< HEAD
-=======
 
 
 
 
 
->>>>>>> Updated analysis scrits
 ###
 pdf("Output1A/GLM/AtoG.2genes.pdf", width = 5.5, height = 6)
 layout(matrix(1:2, nrow = 1))

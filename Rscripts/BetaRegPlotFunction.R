@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 makePlot.axisbreak <- function(main){
         
         plot(0, type = "n", xlim = c(.5, 4.5), ylim = c(0.00004, .1), axes = FALSE, ylab = "Mutation frequency", xlab = "Mutation type", main = main, log = "y")
@@ -24,7 +22,6 @@ makePlot.axisbreak <- function(main){
 }
 
 
->>>>>>> Updated analysis scrits
 makePlot1 <- function(main){
 plot(0, type = "n", xlim = c(.5, 2.5), ylim = c(0.0004, .1), axes = FALSE, 
         ylab = "", xlab = "", main = main, log = "y")

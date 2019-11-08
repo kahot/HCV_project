@@ -2,11 +2,7 @@ library(purrr)
 library(tidyverse)
 library(zoo)
 library(colorspace)
-<<<<<<< HEAD
-source("Rscripts/label_sceintific.R")
-=======
 source("Rscripts/label_scientific.R")
->>>>>>> Updated analysis scrits
 
 colors2<-qualitative_hcl(6, palette="Dark3")
 
@@ -14,11 +10,8 @@ colors2<-qualitative_hcl(6, palette="Dark3")
 source("Rscripts/baseRscript.R")
 
 mfs<-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv",stringsAsFactors = F, row.names = 1)
-<<<<<<< HEAD
-=======
 mfs<-mfs[mfs$pos>351,]
 
->>>>>>> Updated analysis scrits
 genes<-read.csv("Data/HCV_annotations2.csv",stringsAsFactors = F)
 genes$Gene[genes$Gene=="NS1(P7)"]<-"NS1"
 gene.vector<-c()
@@ -33,30 +26,17 @@ genenames<-genes$Gene[1:12]
 
 ### Plot mutation freq. across the genome based on the mutation types 
 
-<<<<<<< HEAD
-n<-data.frame("pos"=c(1:maxpos))
-mfs<-merge(n,mfs,by="pos",all.x=T)
-=======
 #n<-data.frame("pos"=c(1:mfs$pos[nrow(mfs)]))
 #mfs<-merge(n,mfs,by="pos",all.x=T)
->>>>>>> Updated analysis scrits
 
 pdf("Output1A/SummaryFig.Filtered/MutFreq_by_Types2.pdf",width=15,height=6)
 maxnuc=mfs$pos[nrow(mfs)]
 par(mar = c(3,5,1,2))
 #selcoeffcolumn <-SC3$mean 
-<<<<<<< HEAD
-
-plot(mfs$pos[1:maxnuc],mfs$mean[1:maxnuc],
-        log="y", ylab="Ave. mutation freq.",cex.lab=1.4,
-        yaxt="n", xlab="",xaxt='n',
-        col="darkgrey",t="n",pch=".", ylim=c(3.2*10^-4,0.1),xlim=c(342,maxnuc))
-=======
 plot(mfs$pos[1:maxnuc],mfs$mean[1:maxnuc],
         log="y", ylab="Aveerage mutation freq.",cex.lab=1.4,
         yaxt="n", xlab="",xaxt='n',
         col="darkgrey",t="n",pch=".", ylim=c(3.2*10^-4,0.1))
->>>>>>> Updated analysis scrits
 axis(1,at=c(seq(500,8500,by=1000)), labels=c(seq(500,8500,by=1000)))
 eaxis(side = 2, at = 10^((-1):(-(4))), cex=2)
 
@@ -71,9 +51,6 @@ for (i in 1:maxnuc){
         if (mfs$Type[i]=="nonsyn"&mfs$ref[i]%in%c("a","t")) {c=colors2[5]}
         points(mfs$pos[i],mfs$mean[i],pch=21,col='gray30',lwd=0.3, bg=paste0(c,"B3"),cex=.4)
 }
-<<<<<<< HEAD
-        #Add legend
-=======
 ylow<-0.00025
 for (j in 2:(nrow(genes)-1)){
         xleft<-genes$start[j]
@@ -97,7 +74,6 @@ mfs$roll100<-c(rep(NA, times=50),roll100, rep(NA, times=49))
 lines(roll100~pos,data=mfs, col="#001ade", lwd=0.8)
 abline(v=genes$end, col="gray80", lwd=.5)
 #Add legend
->>>>>>> Updated analysis scrits
 legpos=300; legposV=0.1
 rect(legpos, 0.42*legposV, (legpos+1000), 1.05*legposV, density = NULL, angle = 45,col=alpha("white",1))
 points((legpos+100),legposV*0.9,pch=21,bg=colors2[2],col=1,cex=1)
@@ -109,8 +85,6 @@ text((legpos+150),legposV*0.6,"Non-syn, C/G",adj=0, cex=1)
 points((legpos+100),legposV*0.49,pch=21,bg=1,col=1,cex=1)
 text((legpos+150),legposV*0.49,"Nonsense",adj=0, cex=1)
 
-<<<<<<< HEAD
-=======
 
         
 box()
@@ -140,7 +114,6 @@ for (i in 1:maxnuc){
         if (mfs$Type[i]=="nonsyn"&mfs$ref[i]%in%c("a","t")) {c=colors2[5]}
         points(mfs$pos[i],mfs$mean[i],pch=21,col='gray30',lwd=0.3, bg=paste0(c,"B3"),cex=.5)
 }
->>>>>>> Updated analysis scrits
 ylow<-0.00025
 for (j in 2:(nrow(genes)-1)){
         xleft<-genes$start[j]
@@ -148,11 +121,7 @@ for (j in 2:(nrow(genes)-1)){
         
         if ((j==4|j==6|j==9)){
                 rect(xleft,ylow,xright,1.3*ylow,density = NULL, angle = 45,col="white",border ="gray40")
-<<<<<<< HEAD
-                text(xleft+80, 1.4*ylow,paste0(genes$Gene[j]),col="black", cex=0.8)
-=======
                 text(xleft+80, 1.45*ylow,paste0(genes$Gene[j]),col="black", cex=0.8)
->>>>>>> Updated analysis scrits
                 #mtext(paste0(genes$Gene[j]),side= 1, line=-0.1, at= xleft+80, col="black", cex=0.8)
         }
         else if (j==12){
@@ -163,30 +132,18 @@ for (j in 2:(nrow(genes)-1)){
                 text(xright-(xright-xleft)/2,1.15*ylow,paste0(genes$Gene[j]),col="black", cex=0.8)}
 }
 
-<<<<<<< HEAD
-roll100<-rollmean(mfs$mean, k=100, na.rm=T)
-mfs$roll100<-c(rep(NA, times=50),roll100,c(rep(NA, times=49)))
-lines(roll100~pos,data=mfs, col="#001ade", lwd=0.8)
-abline(v=genes$end, col="gray80", lwd=.5)
-
-        
-=======
 roll100<-rollmean(mfs$mean, k=100, na.rm=T, align="center")
 mfs$roll100<-c(rep(NA, times=50),roll100, rep(NA, times=49))
 lines(roll100~pos,data=mfs, col="#001ade", lwd=0.8)
 abline(v=genes$end, col="gray80", lwd=.5)
 
 
->>>>>>> Updated analysis scrits
 box()
 dev.off()
 
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> Updated analysis scrits
 ####
 
 endnuc<-mfs$pos[nrow(mfs)]
@@ -253,27 +210,16 @@ write.csv(sumG, "Output1A/MutFreq.filtered/MF_Summary_Table.by.gene.csv")
 
 mf2<-mf1[,c("pos","mean","gene")]
 
-<<<<<<< HEAD
-ggplot(sumG, aes(x=Gene, y=Mean))+scale_y_continuous(trans="log10", 
-          breaks = c(0.001,0.005,0.007,0.009,0.01),labels=c(10^-3,0.005,0.007,'',10^-2))+
-=======
 ybreaks<-c(seq(0.0005, 0.0009, by=0.0001),seq(0.001,0.009, by=0.001), seq(0.01, 0.04, by=0.01))
 ylabel<-c(rep("", times=5),0.001, 0.002, 0.003,"", 0.005,"", 0.007, "","",0.01, 0.02, 0.03,"")
 ggplot(sumG, aes(x=Gene, y=Mean))+scale_y_continuous(trans="log10", 
           breaks = ybreaks,labels=ylabel)+
->>>>>>> Updated analysis scrits
         geom_point(data=mf2, aes(x=gene, y=mean), position=position_jitter(width=0.2),stat = "identity", col=paste0(colors2[5],"4D"), size=0.2)+
         geom_point()+
         geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.2, position=position_dodge(width=0.3))+
         theme_bw()+theme(axis.text=element_text(size=11), axis.title=element_text(size=13))+
         ylab("Average mutation frequency")+
         theme(panel.grid.major.x=element_blank(),axis.title.y = element_text(size=13), panel.grid.minor.y = element_blank())+
-<<<<<<< HEAD
-        geom_vline(xintercept = c(1:11)+0.5,  
-                   color = "gray70", size=.5)+
-        theme(axis.title.x=element_blank())
-ggsave(filename="Output1A/MutFreq.filtered/Ave.mf.byGene.pdf", width = 8.5, height = 5)
-=======
         geom_vline(xintercept = c(1:10)+0.5,  
                    color = "gray70", size=.5)+
         theme(axis.title.x=element_blank())
@@ -369,6 +315,5 @@ write.csv(WilcoxTest2.gene,"Output1A/SummaryStats/SC_WilcoxTestResults_byGene.cs
 
 #####
 
->>>>>>> Updated analysis scrits
 
 

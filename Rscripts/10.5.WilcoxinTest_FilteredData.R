@@ -50,10 +50,7 @@ r2<-wilcox.test(Ts$mean[Ts$Type=="nonsyn"], Ts$mean[Ts$Type=="stop"], alternativ
 r1[[3]]  #P=0
 r2[[3]]  #P= 1.933446e-41
 
-<<<<<<< HEAD
-=======
 
->>>>>>> Updated analysis scrits
 #CpG creating vs Non-CpG creating
 T2<-Ts[Ts$ref=="a"|Ts$ref=="t",]
 r3<-wilcox.test(T2$mean[T2$Type=="syn"&T2$makesCpG==0], T2$mean[T2$Type=="syn"&T2$makesCpG==1], alternative = "greater", paired = FALSE) 
