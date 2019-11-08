@@ -1,0 +1,11 @@
+Overview1 = Mutation types based on MajNT
+
+Overview2 = Mutation types based on ref genome
+
+Overview3 = Filtered out Overview2 for mut freq >0.2 and read depth <1000
+
+Overview2.2 = Overview2 adjusted for merged positions
+
+OverviewD = Overview3 file with "D" values (The proportion of pairwise nucleotide differences at the ith site (Di) -Nelson & Hughes 2015)
+
+OverviewD2 = Overview2 file with D values (nonfiltered) 
