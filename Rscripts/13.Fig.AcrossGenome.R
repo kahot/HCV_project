@@ -29,13 +29,13 @@ genenames<-genes$Gene[1:12]
 #n<-data.frame("pos"=c(1:mfs$pos[nrow(mfs)]))
 #mfs<-merge(n,mfs,by="pos",all.x=T)
 
-pdf("Output1A/SummaryFig.Filtered/MutFreq_by_Types2.pdf",width=15,height=6)
+pdf("Output1A/SummaryFig.Filtered/MutFreq_by_Types2.pdf",width=14,height=4.9)
 maxnuc=mfs$pos[nrow(mfs)]
-par(mar = c(3,5,1,2))
+par(mar = c(4.5,5,1,1))
 #selcoeffcolumn <-SC3$mean 
 plot(mfs$pos[1:maxnuc],mfs$mean[1:maxnuc],
-        log="y", ylab="Aveerage mutation freq.",cex.lab=1.4,
-        yaxt="n", xlab="",xaxt='n',
+        log="y", ylab="Mutation frequency",cex.lab=1.4,
+        yaxt="n", xlab="Genome position",xaxt='n',
         col="darkgrey",t="n",pch=".", ylim=c(3.2*10^-4,0.1))
 axis(1,at=c(seq(500,8500,by=1000)), labels=c(seq(500,8500,by=1000)))
 eaxis(side = 2, at = 10^((-1):(-(4))), cex=2)
@@ -79,9 +79,9 @@ rect(legpos, 0.42*legposV, (legpos+1000), 1.05*legposV, density = NULL, angle = 
 points((legpos+100),legposV*0.9,pch=21,bg=colors2[2],col=1,cex=1)
 text((legpos+150),legposV*0.9,"Syn",adj=0, cex=1)
 points((legpos+100),legposV*0.74,pch=21,bg=colors2[5],col=1,cex=1)
-text((legpos+150),legposV*0.74,"Non-syn, A/T",adj=0, cex=1)
+text((legpos+150),legposV*0.74,"Nonsyn, A/T",adj=0, cex=1)
 points((legpos+100),legposV*0.6,pch=21,bg=colors2[1],col=1,cex=1)
-text((legpos+150),legposV*0.6,"Non-syn, C/G",adj=0, cex=1)
+text((legpos+150),legposV*0.6,"Nonsyn, C/G",adj=0, cex=1)
 points((legpos+100),legposV*0.49,pch=21,bg=1,col=1,cex=1)
 text((legpos+150),legposV*0.49,"Nonsense",adj=0, cex=1)
 
