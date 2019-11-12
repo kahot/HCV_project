@@ -37,3 +37,20 @@ GlmData<-cbind(GlmData,dat1[,2:4])
 colnames(GlmData)[9]<-"CpG"
 write.csv(GlmData, "Output1A/GLM/GlmData_Ts_FilteredData.csv")
 
+## Add RNA structural information
+
+DF<-read.csv("Output1A/GLM/GlmData_Ts_FilteredData.csv", stringsAsFactors = F, row.names = 1)
+colnames(DF)[1]<-"pos"
+rna<-read.csv("Data/RNAStructure_Conserved2.csv", stringsAsFactors = F)
+for (i in 1:nrow(rna)){
+        pos<-rna$Start[i]:rna$End[i]
+        Shape<-rep(1, times=rna$End[i]-rna$Start[i]+1)
+        rnaList[[i]]<-cbind(pos, Shape)
+}
+
+RnaShape<-data.frame(do.call(rbind,rnaList))
+DF<-merge(DF,RnaShape, by="pos", all.x = T)
+DF$Shape[is.na(DF$Shape)]<-0
+
+write.csv(DF, "Output1A/GLM/BetaReg.Data.Shape.csv")
+
