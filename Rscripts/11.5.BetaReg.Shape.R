@@ -107,7 +107,7 @@ summary(mod2)
 
 ## Mod1 minus NS3 only
 #Coefficients (mean model with logit link):
-#Estimate Std. Error  z value Pr(>|z|)    
+#             Estimate Std. Error  z value Pr(>|z|)    
 #(Intercept) -4.472011   0.019024 -235.066  < 2e-16 ***
 #t            0.115482   0.020860    5.536 3.09e-08 ***
 #c           -0.532649   0.020508  -25.973  < 2e-16 ***
