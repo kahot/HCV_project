@@ -5,9 +5,8 @@ library(colorspace)
 source("Rscripts/label_scientific.R")
 
 colors2<-qualitative_hcl(6, palette="Dark3")
-
-
 source("Rscripts/baseRscript.R")
+
 
 mfs<-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv",stringsAsFactors = F, row.names = 1)
 mfs<-mfs[mfs$pos>351,]
@@ -225,6 +224,10 @@ ggplot(sumG, aes(x=Gene, y=Mean))+scale_y_continuous(trans="log10",
         theme(axis.title.x=element_blank())
 ggsave(filename="Output1A/SummaryFig.Filtered/Ave.mf.byGene.pdf", width = 8, height = 4)
 
+
+
+
+
 ## Wilcoxon test by gene
 #run Wilcoxin Test  
 
@@ -314,6 +317,96 @@ write.csv(WilcoxTest2.gene,"Output1A/SummaryStats/SC_WilcoxTestResults_byGene.cs
 
 
 #####
+## wilcox test of MF by NT
+NT<-c("a","c","t","g")
+Ncomb<-t(combn(NT,2))
+WilcoxTest.nt<-data.frame(matrix(ncol=4,nrow=nrow(Ncomb)))
+colnames(WilcoxTest.nt)<-c("NT1","NT2","test","P.value")
+
+mf1<-mfs[!is.na(mfs$mean),]
+mf1<-merge(mf1, genetable, by="pos", all.x=T )
+
+for (i in 1:nrow(Ncomb)) {
+        vec1<-mf1$mean[mf1$ref==Ncomb[i,1]]
+        vec2<-mf1$mean[mf1$ref==Ncomb[i,2]]
+        result<-wilcox.test(vec1, vec2, alternative = "less", paired = FALSE) 
+        
+        WilcoxTest.nt$NT1[i]<-Ncomb[i,1]
+        WilcoxTest.nt$NT2[i]<-Ncomb[i,2]
+        WilcoxTest.nt$test[i]<-"less"
+        WilcoxTest.nt$P.value[i]<-result[[3]]
+}   
+
+WilcoxTest.nt2<-data.frame(matrix(ncol=4,nrow=nrow(Ncomb)))
+colnames(WilcoxTest.nt2)<-c("NT1","NT2","test","P.value")
+
+for (i in 1:nrow(Ncomb)) {
+        vec1<-mf1$mean[mf1$ref==Ncomb[i,1]]
+        vec2<-mf1$mean[mf1$ref==Ncomb[i,2]]
+        result<-wilcox.test(vec1, vec2, alternative = "greater", paired = FALSE) 
+        
+        WilcoxTest.nt2$NT1[i]<-Ncomb[i,1]
+        WilcoxTest.nt2$NT2[i]<-Ncomb[i,2]
+        WilcoxTest.nt2$test[i]<-"greater"
+        WilcoxTest.nt2$P.value[i]<-result[[3]]
+}   
+
+WilcoxTest.nt<-rbind(WilcoxTest.nt,WilcoxTest.nt2)
+write.csv(WilcoxTest.nt,"Output1A/SummaryStats/MF_WilcoxTestResults_byNT.csv")
+
+######## By Gene and by type
+##
+mf1<-mfs[!is.na(mfs$mean),]
+mf1<-merge(mf1, genetable, by="pos", all.x=T )
+
+#exclude stop mutations
+mf1<-mf1[mf1$Type!="stop",]
+
+SumMFGenes<-aggregate(mf1$mean,by=list(mf1$gene, mf1$Type),FUN=mean)
+SumMF.se<-aggregate(mf1$mean,by=list(mf1$gene,mf1$Type),FUN=std.error)
+
+sumG<-cbind(SumMFGenes, SumMF.se$x)
+colnames(sumG)<-c("Gene","Type", "Mean","SE")
+sumG$Gene<-factor(sumG$Gene, levels=c("Core","E1", "HVR1","E2","NS1", "NS2","NS3","NS4A","NS4B","NS5A","NS5B"))
+
+write.csv(sumG, "Output1A/MutFreq.filtered/MF_Summary_Table.by.gene.byType.csv")
+
+
+ggplot(sumG, aes(x=Gene, y=Mean, group=Type, color=Type))+
+        geom_point(position=position_dodge(width=0.3))+scale_color_manual(values=colors2[c(1,5)])+
+        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.2, position=position_dodge(width=0.3))+
+        theme_bw()+theme(axis.text=element_text(size=11), axis.title=element_text(size=13))+ylab("Mutation frequency")+
+        theme(panel.grid.major.x=element_blank(),axis.title.y = element_text(size=13))+
+        geom_vline(xintercept = c(1:10)+0.5,  
+                   color = "gray70", size=.5)+
+        theme(axis.title.x=element_blank())
+ggsave(filename="Output1A/SummaryFig.Filtered/Ave.MF_by.gene_by.type.pdf", width = 8.5, height = 5)
 
 
 
+
+
+
+mf2<-mf1[,c("pos","mean","gene","Type")]
+
+## Wilcoxon test by gene
+#run Wilcoxin Test  
+
+Gcomb<-t(combn(genenames[2:12],2))
+WilcoxTest.gene<-data.frame(matrix(ncol=3,nrow=11))
+colnames(WilcoxTest.gene)<-c("gene","test","P.value")
+
+
+for (i in 1:11) {
+        vec1<-mf1$mean[mf1$gene==genenames[(i+1)] & mf1$Type=="syn"]
+        vec2<-mf1$mean[mf1$gene==genenames[(i+1)] & mf1$Type=="nonsyn"]
+        result<-wilcox.test(vec1, vec2, alternative = "greater", paired = FALSE) 
+        
+        WilcoxTest.gene$gene[i]<-genenames[(i+1)]
+        WilcoxTest.gene$test[i]<-"greater"
+        WilcoxTest.gene$P.value[i]<-result[[3]]
+}   
+
+write.csv(WilcoxTest.gene,"Output1A/SummaryStats/MF_WilcoxTestResults_byGene.byType.csv")
+
+WilcoxTest.gene[3,]
