@@ -23,31 +23,30 @@ makePlot.axisbreak <- function(main){
 
 
 makePlot1 <- function(main){
-plot(0, type = "n", xlim = c(.5, 2.5), ylim = c(0.0004, .1), axes = FALSE, 
-        ylab = "", xlab = "", main = main, log = "y")
-        mtext("Mutation frequency",2, line=2.5 )
-#    abline(h = seq(0, .15, by = .025), col = col.par)
-abline(h = (1:9)*10^(-1), col = col.par)
-abline(h = (1:9)*10^(-2), col = col.par)
-abline(h = (1:9)*10^(-3), col = col.par)
-abline(h = (1:9)*10^(-4), col = col.par)
-#abline(h = (1:2)*10^(-5), col = col.par)
-#abline(h = (1)*10^(-3.4), col = col.par)
-box()
+        plot(0, type = "n", xlim = c(.5, 2.5), ylim = c(0.0004, .1), axes = FALSE, 
+                ylab = "", xlab = "", main = main, log = "y")
+                mtext("Mutation frequency",2, line=2.5 )
+        #    abline(h = seq(0, .15, by = .025), col = col.par)
+        abline(h = (1:9)*10^(-1), col = col.par)
+        abline(h = (1:9)*10^(-2), col = col.par)
+        abline(h = (1:9)*10^(-3), col = col.par)
+        abline(h = (1:9)*10^(-4), col = col.par)
+        #abline(h = (1:2)*10^(-5), col = col.par)
+        #abline(h = (1)*10^(-3.4), col = col.par)
+        box()
 
-axislabs <- c("Syn","Nosnyn")
-axis(1, at = 1:2, axislabs, cex=.5)
-eaxis(2, at = 10^c(-1*(0:4)))
-axis(2, at = 10^(-3.4), label = c("0"), las = 2)
-axis.break(2, 2*10^-(3.65),style="slash")
-
+        axislabs <- c("Syn","Nosnyn")
+        axis(1, at = 1:2, axislabs, cex=.5)
+        eaxis(2, at = 10^c(-1*(0:4)))
+        axis(2, at = 10^(-3.4), label = c("0"), las = 2)
+        axis.break(2, 2*10^-(3.65),style="slash")
 }
 
 makePlot2 <- function(main){
         plot(0, type = "n", xlim = c(.5, 2.5), ylim = c(0.0004, .1), axes = FALSE, 
              ylab = "", xlab = "", main = main, log = "y")
         
-        #    abline(h = seq(0, .15, by = .025), col = col.par)
+        #abline(h = seq(0, .15, by = .025), col = col.par)
         abline(h = (1:9)*10^(-1), col = col.par)
         abline(h = (1:9)*10^(-2), col = col.par)
         abline(h = (1:9)*10^(-3), col = col.par)
@@ -92,7 +91,7 @@ makeDataFrame1 <- function(NsOrNo , CpGorNo, Core, HVR){
 } 
 
 
-plotPoint <- function(NT, NsOrNo, CpGorNo, Core, HVR1,colVal, offset){
+plotPoint <- function(NT, NsOrNo, CpGorNo, Core, HVR,colVal, offset){
         
         pchpar <- 21
         cexpar <- 1
@@ -121,14 +120,14 @@ plotPoint <- function(NT, NsOrNo, CpGorNo, Core, HVR1,colVal, offset){
 }
 
 
-plotPoint2 <- function(NT, NsOrNo, CpGorNo, Core, HVR1,colVal, offset){
+plotPoint2 <- function(NT, NsOrNo, CpGorNo, Core, HVR,colVal, offset){
         
         pchpar <- 21
         cexpar <- 1
         arrowlwd <- 1.5
         arrowlen <-.08
         
-        setUpDat <- makeDataFrame1(NsOrNo, CpGorNo, Core, HVR1)[,rownames(modcoef)]
+        setUpDat <- makeDataFrame1(NsOrNo, CpGorNo, Core, HVR)[,rownames(modcoef)]
         
         if (NT=="A") setUpDat<-setUpDat[1,]
         if (NT=="T") setUpDat<-setUpDat[2,]
@@ -155,12 +154,12 @@ plotPoint2 <- function(NT, NsOrNo, CpGorNo, Core, HVR1,colVal, offset){
 }
 nucord <- c("a", "t", "c", "g")
 
-plotDots <- function(NT, NsOrNo, CpGorNo, Core, HVR1,colVal, offsetval){
+plotDots <- function(NT, NsOrNo, CpGorNo, Core, HVR,colVal, offsetval){
         
         pchpar <- 16
         cexpar <- .6
         if (Core==1) genename<-"Core"
-        if (HVR1==1) genename<-"HVR1"
+        if (HVR==1) genename<-"HVR1"
         nsinds <- which(d$Type == c("syn", "nonsyn")[NsOrNo + 1])
         cpginds <- which(d$makesCpG == CpGorNo)
         geneinds <- which(d$gene == genename)

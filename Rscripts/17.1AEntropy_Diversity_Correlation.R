@@ -160,6 +160,8 @@ results<-cor.test(compare$Entropy,compare$mean, method = "spearman")
 print(results)
 #      rho 
 #-0.677469 
+#P =0
+
 pdf(paste0("Output1A/SummaryFig.Filtered/Entropy-MF_618.pdf"))
 plot(comparison1$mean,-(comparison1$Entropy), ylab="", xlab="",
      pch=16,col=colors2[5],cex=0.6, cex.axis=1.2)

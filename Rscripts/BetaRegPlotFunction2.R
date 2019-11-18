@@ -1,20 +1,4 @@
-makeDataFrame_all <- function(NsOrNo){
-        
-        atcg.mat <- as.data.frame(matrix(data = 0, ncol = nrow(modcoef), nrow = 4))
-        #ATCG elements
-        diag(atcg.mat[1:4, 1:4]) <- 1
-        #Reserve the first column for intercept
-        atcg.mat[,1] <- 1
-        #synonymous or nonsynonymous mutation?
-        atcg.mat[,6] <- NsOrNo
-        #nonysynonymous interactions with a t c g
-        atcg.mat[16:18] <- atcg.mat[,2:4] * atcg.mat[,6]
-        
-        #names
-        names(atcg.mat) <- c(rownames(modcoef) )
-        
-        return(as.matrix(atcg.mat))
-} 
+nucord <- c("a", "t", "c", "g")
 
 
 makePlot.axisbreak <- function(main){
@@ -27,8 +11,8 @@ makePlot.axisbreak <- function(main){
         abline(h = (1:9)*10^(-2), col = col.par)
         abline(h = (1:9)*10^(-3), col = col.par)
         abline(h = (1:9)*10^(-4), col = col.par)
-        abline(h = (1:2)*10^(-5), col = col.par)
-        abline(h = (1)*10^(-4.4), col = col.par)
+        #abline(h = (1:2)*10^(-5), col = col.par)
+        #abline(h = (1)*10^(-4.4), col = col.par)
         box()
         
         axislabs <- c(expression("A" %->% "G"), expression("T" %->% "C"), expression("C" %->% "T"), expression("G" %->% "A"))
@@ -50,8 +34,6 @@ makePlotAll <- function(main){
         abline(h = (1:9)*10^(-2), col = col.par)
         abline(h = (1:9)*10^(-3), col = col.par)
         abline(h = (1:9)*10^(-4), col = col.par)
-        #abline(h = (1:2)*10^(-5), col = col.par)
-        #abline(h = (1)*10^(-3.4), col = col.par)
         abline(v=c(1:3)+0.5, col="gray70", cex=.7)
         box()
         
@@ -62,6 +44,27 @@ makePlotAll <- function(main){
         axis.break(2, 2*10^-(3.65),style="slash")
         
 }
+
+
+makeDataFrame_all <- function(NsOrNo){
+        
+        atcg.mat <- as.data.frame(matrix(data = 0, ncol = nrow(modcoef), nrow = 4))
+        #ATCG elements
+        diag(atcg.mat[1:4, 1:4]) <- 1
+        #Reserve the first column for intercept
+        atcg.mat[,1] <- 1
+        #synonymous or nonsynonymous mutation?
+        atcg.mat[,6] <- NsOrNo
+        #nonysynonymous interactions with a t c g
+        atcg.mat[7:10] <- atcg.mat[,2:4] * atcg.mat[,6]
+        
+        #names
+        names(atcg.mat) <- c(rownames(modcoef) )
+        
+        return(as.matrix(atcg.mat))
+} 
+
+
 
 plotMFs <- function(NsOrNo, colVal,offsetval){
         pchpar <- 16

@@ -39,9 +39,6 @@ for (i in 1:(nrow(genes)-1)){
 }
 genetable<-data.frame("pos"=c(1:length(gene.vector)))
 genetable$gene<-gene.vector
-
-
-
 end<-df$pos[nrow(df)]
 genetable<-genetable[genetable$pos>=342&genetable$pos<=end,]
 
@@ -66,7 +63,6 @@ GCs$gene<-rownames(GCs)
 colnames(GCs)[1]<-"GC"
 
 
-#
 #AT content of each genes:
 ATcontents<-list()
 for (i in 1:11){
@@ -82,14 +78,39 @@ ATs$gene<-rownames(ATs)
 colnames(ATs)[1]<-"AT"
 
 #CpG creating mutation freq.
+#mut.freq & se
 cpg<-list()
+cpg.se<-list()
 for (i in 1:11){
-        cpg[i]<-mean(sc$mean[sc$gene==genes$Gene[i+1]], na.rm=T)
+        cpg[i]<-mean(sc$mean[sc$gene==genes$Gene[i+1]& sc$makesCpG==1], na.rm=T)
         names(cpg)[i]<-genes$Gene[i+1]
+        cpg.se[i]<-std.error(sc$mean[sc$gene==genes$Gene[i+1]& sc$makesCpG==1], na.rm=T)
+        names(cpg.se)[i]<-genes$Gene[i+1]
 }
 cpg.mf<-as.data.frame(do.call(rbind,cpg))
+cpgse<-as.data.frame(do.call(rbind,cpg.se))
+cpg.mf$cpg.se<-cpgse[,1]
 cpg.mf$gene<-rownames(cpg.mf)
-colnames(cpg.mf)[1]<-"CpG"
+colnames(cpg.mf)<-c("CpG", "CpG.se", "gene")
+
+# Total A/T mut freq
+ag<-sc[sc$ref=="a" | sc$ref=="t",]
+AveMF<-aggregate(ag$mean,by=list(ag$gene), mean, na.rm = TRUE)
+colnames(AveMF)<-c("gene","MF")
+SEMF<-aggregate(ag$mean,by=list(ag$gene), std.error, na.rm = TRUE)
+colnames(SEMF)<-c("gene","mf.se")
+mf<-merge(AveMF, SEMF, by="gene")
+
+
+# create data.frame for plotting cpg mf and mf together
+CpG<-cpg.mf[,c(3,1,2)]
+colnames(CpG)[2:3]<-c("MF", "SE")
+CpG$Kind<-"CpG"
+mutf<-mf
+colnames(mutf)[2:3]<-c("MF", "SE")
+mutf$Kind<-"All"
+CpG<-rbind(CpG,mutf)        
+CpG$gene<-factor(CpG$gene, levels=c("Core", "E1", "HVR1", "E2","NS1","NS2","NS3","NS4A","NS4B","NS5A","NS5B"))
 
 #proportion of CpG creating mutations
 #cpgPercent<-list()
@@ -105,30 +126,23 @@ colnames(cpg.mf)[1]<-"CpG"
 
 SC_summary<-merge(AveSC,SESC,by="gene")
 SC_summary<-merge(SC_summary,GCs,by="gene")
+SC_summary<-merge(SC_summary,ATs,by="gene")
 SC_summary<-merge(SC_summary,cpg.mf, by="gene")
+SC_summary<-merge(SC_summary,mf, by="gene")
+
 write.csv(SC_summary,"Output1A/SelCoeff/SC.GCcontents_summary_by_genes.csv")
 
-##
-SC_summary2<-merge(AveSC,SESC,by="gene")
-SC_summary2<-merge(SC_summary2,ATs,by="gene")
-SC_summary2<-merge(SC_summary2,cpg.mf, by="gene")
-
 ###########  Plot the average Sel Coeff by genes
-SC_summary2$gene<-factor(SC_summary$gene, levels=c("Core", "E1", "HVR1", "E2","NS1","NS2","NS3","NS4A","NS4B","NS5A","NS5B"))
+SC_summary$gene<-factor(SC_summary$gene, levels=c("Core", "E1", "HVR1", "E2","NS1","NS2","NS3","NS4A","NS4B","NS5A","NS5B"))
 
-title<-"Average selection coefficients by genes"
-
-ggboxplot(sc,x="gene",y="EstSC", xlab="Gene", ylab="Estimated selective coefficient",color="gene")+
-        theme(legend.position="none")
-
-ggboxplot(sc,x="gene",y="EstSC", xlab="Gene", ylab="Estimated selective coefficient",color="gray40")+
-        theme(legend.position="none")
-
-ggsave(filename=paste0("Output1A/SelCoeff/SC_by.gene.Boxplot.pdf"), width = 10, height = 7)
-
+#ggboxplot(sc,x="gene",y="EstSC", xlab="Gene", ylab="Estimated selective coefficient",color="gene")+
+#        theme(legend.position="none")
+#ggboxplot(sc,x="gene",y="EstSC", xlab="Gene", ylab="Estimated selective coefficient",color="gray40")+
+#        theme(legend.position="none")
+#ggsave(filename=paste0("Output1A/SelCoeff/SC_by.gene.Boxplot.pdf"), width = 10, height = 7)
 
 ggplot(SC_summary,aes(gene,y=SC))+
-        geom_point(color="royalblue")+
+        geom_point(color="royalblue", size=3)+
         geom_errorbar(aes(ymin=SC-se, ymax=SC+se), width=.2,color="royalblue" )+
         theme_bw()+
         theme(axis.title.x=element_blank())+ylab("Average selection coefficient")+
@@ -139,64 +153,42 @@ ggsave(filename="Output1A/SelCoeff/Ave.SC_by.gene.pdf",width =5, height = 4)
 
 
 ##
-GCplot<-ggplot(SC_summary[2:12,],aes(x=gene,y=GC))+
-        geom_point(color="#FF7A16", size=2)+
+GCplot<-ggplot(SC_summary,aes(x=gene,y=GC))+
+        geom_point(color="#FF7A16", size=3)+
         theme_bw()+
         theme(axis.title.x=element_blank())+ylab("GC content")+
         theme(panel.grid.major.x = element_blank())
 
-scaleFUN <- function(x) sprintf("%.2f", x)
-
-cpgPlot<-ggplot(SC_summary[2:12,],aes(x=gene,y=CpG))+
-        scale_y_continuous(labels=scaleFUN)+
-        geom_point(color=colors2[3], size=2)+
-        theme_bw()+
-        theme(axis.title.x=element_blank())+ylab("% CpG-creating mutations")+
-        theme(panel.grid.major.x = element_blank())
-
-
-
-
-
-title <- ggdraw() + draw_label("Selection coefficients, GC contents, and % CpG mutations", fontface='bold')
-title <- ggdraw() + draw_label("Selection coefficients & GC contents", fontface='bold')
-plot_grid(title,scPlot, GCplot, nrow = 3, labels = c("", "",""),
-          rel_heights = c(0.2, 1, 1,1))
-ggsave(filename="Output1A/SelCoeff/SC-GCcontent.pdf",width =6, height = 5)
-
-#bottom_row <- plot_grid(GCplot, tss_flow_plot, ncol = 2, labels = "AUTO")
-title <- ggdraw() + draw_label("Selection coefficients, GC contents, and % CpG mutations", fontface='bold')
-plot_grid(title,scPlot, GCplot,cpgPlot, nrow = 4, labels = c("", "","",""),
-          rel_heights = c(0.2, 1, 1,1))
-
-ggsave(filename="Output1A/SelCoeff/SC-GC-CpG.pdf",width =7, height =6 )
-
-## SC and AT
-SC_summary2$gene<-factor(SC_summary2$gene, levels=c("Core", "E1", "HVR1", "E2","NS1","NS2","NS3","NS4A","NS4B","NS5A","NS5B"))
-scPlot<-ggplot(SC_summary2,aes(gene,y=SC))+
+scPlot<-ggplot(SC_summary,aes(gene,y=SC))+
         geom_point(color="royalblue", size=3)+
         geom_errorbar(aes(ymin=SC-se, ymax=SC+se), width=.3,color="royalblue" )+
         theme_bw()+
         theme(axis.title.x=element_blank())+ylab("Average selection coefficient")+
         theme(panel.grid.major.x = element_blank())
 
-ATplot<-ggplot(SC_summary2,aes(x=gene,y=AT))+
+ATplot<-ggplot(SC_summary,aes(x=gene,y=AT))+
         geom_point(color="#FF7A16", size=3.5)+
         theme_bw()+
         theme(axis.title.x=element_blank())+ylab("AT content")+
         theme(panel.grid.major.x = element_blank())
 
-cpgPlot<-ggplot(SC_summary2,aes(x=gene,y=CpG))+
-        scale_y_continuous(labels=scaleFUN)+
-        geom_point(color=colors2[3], size=3)+
+
+cpgPlot<-ggplot(CpG,aes(x=gene,y=MF, color=Kind))+
+        scale_y_continuous(labels=scaleFUN)+scale_color_manual(values=colors2[c(3,6)])+
+        geom_point(position=position_dodge(width=0.8), size=3)+
+        geom_errorbar(aes(ymin=MF-SE, ymax=MF+SE), width=.2, size=.2,position=position_dodge(width=0.8))+
         theme_bw()+
-        theme(axis.title.x=element_blank())+ylab("CpG-creating MF")+
-        theme(panel.grid.major.x = element_blank())
+        theme(axis.title.x=element_blank())+ylab("Mutation frequency")+
+        theme(panel.grid.major.x = element_blank())+
+        theme(legend.position = "none") 
+
 
 title <- ggdraw() + draw_label("Selection coefficients,AT contents, CpG creating MF", fontface='bold')
 plot_grid(title,scPlot, ATplot, cpgPlot, nrow = 4, labels = c("", "","", ""),
           rel_heights = c(0.2, 1, 1,1))
 ggsave(filename="Output1A/SelCoeff/SC-AT-CpG.pdf",width =7, height =6)
+
+
 
 
 

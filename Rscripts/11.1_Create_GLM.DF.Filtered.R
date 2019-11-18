@@ -37,6 +37,38 @@ GlmData<-cbind(GlmData,dat1[,2:4])
 colnames(GlmData)[9]<-"CpG"
 write.csv(GlmData, "Output1A/GLM/GlmData_Ts_FilteredData.csv")
 
+####
+### addd gene annotation info for all genes
+genes<-read.csv("Data/HCV_annotations2.csv")
+genenames<-genes$Gene
+gene<-c()
+for (i in 2:12){
+        gene<-c(gene, rep(i, times=genes$end[i]-genes$start[i]+1))
+}
+
+n<-data.frame(pos=342:(length(gene)+341))
+g<-cbind(n,gene)
+
+
+colnames(BetaReg)[1]<-"pos"
+betar<-merge(BetaReg, g, by ="pos")
+
+for (i in 2:12){
+        gname<-paste(genes$Gene[i])
+        n<-ncol(betar)
+        betar[,n+1]<-0
+        colnames(betar)[n+1]<-gname
+        betar[betar$gene==i,n+1]<-1
+}
+co<-which(colnames(betar)=="NS1(P7)" )
+colnames(betar)[co]<-"NS1"
+
+write.csv(betar,paste0("Output1A/GLM/BetaRegFull.Ts.FilteredData.csv"))
+
+
+
+
+
 ## Add RNA structural information
 
 DF<-read.csv("Output1A/GLM/GlmData_Ts_FilteredData.csv", stringsAsFactors = F, row.names = 1)
@@ -53,4 +85,7 @@ DF<-merge(DF,RnaShape, by="pos", all.x = T)
 DF$Shape[is.na(DF$Shape)]<-0
 
 write.csv(DF, "Output1A/GLM/BetaReg.Data.Shape.csv")
+
+
+
 
