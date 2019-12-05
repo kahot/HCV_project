@@ -8,9 +8,6 @@ colors2<-qualitative_hcl(6, palette="Dark3")
 cols4.60<-paste0(cols4,"66")
 
 ##
-#HCVFiles_overview3<-list.files("Output_all/Overview3/",pattern="overview3.csv")
-
-
 ####  Make Plots  #####
 source("Rscripts/GLMPlotFunctions.R")
 glmData<-read.csv("Output1A/GLM/BetaRegFull.Ts.FilteredData.csv", stringsAsFactors = F, row.names = 1)

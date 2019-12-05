@@ -1,5 +1,4 @@
 #GLM/Beta regression preparation:
-
 library(tidyverse)
 library(zoo)
 library(purrr)

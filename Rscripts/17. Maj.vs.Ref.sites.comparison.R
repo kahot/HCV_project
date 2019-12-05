@@ -121,4 +121,6 @@ pos1.nonst<-pos1[pos1>2579,]
 sum(pos1.st$Freq)/2238 #12.25469
 sum(pos1.nonst$Freq)/6070 #9.449259
 
+
+
 #more structural regions than non-structural genes 

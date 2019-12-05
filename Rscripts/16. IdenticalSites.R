@@ -7,7 +7,11 @@ library(ape)
 library(seqinr)
 library(DescTools)
 library(ggplot2)
+library(colorspace)
+library(emojifont)
 source("Rscripts/baseRscript.R")
+colors2<-qualitative_hcl(6, palette="Dark3")
+
 
 align<-read.fasta("Output1A/HCV1A_Consenssu_Alignment.fasta",as.string=TRUE)
 consensus<-read.fasta("Data/HCVref.fasta",as.string=TRUE)
@@ -89,6 +93,92 @@ mean(Ts_diff$EstSC, na.rm = T) #0.002578303
 wilcox.test(Ts_same$EstSC, Ts_diff$EstSC,  alternative = "greater", paired = FALSE)
 #W = 8210700, p-value = 0.03153
 
+## Coding region only
+Ts2<-Ts[Ts$pos>=342& Ts$pos<=8613,]
+T_same<-Ts2[same.sites,]
+T_diff<-Ts2[-same.sites,]
+
+mean(T_same$mean, na.rm=T)  #0.004779994
+mean(T_diff$mean, na.rm=T) #0.00487539
+wilcox.test(T_same$mean, T_diff$mean,  alternative = "less", paired = FALSE)
+#W = 7837100, p-value = 0.2332
+
+SC2<-SC[SC$pos>=342& SC$pos<=8613,]
+Ts_same<-SC2[same.sites,]
+Ts_diff<-SC2[-same.sites,]
+mean(Ts_same$EstSC, na.rm = T) #0.002621477
+mean(Ts_diff$EstSC, na.rm = T) #0.002583721
+
+wilcox.test(Ts_same$EstSC, Ts_diff$EstSC,  alternative = "greater", paired = FALSE)
+#W = 8210700, p-value = 0.03736
+
+
+
+#####
+#dinucleotides
+fas1<-read.alignment("Output1A/HCV1A_Consensus195_CDS.fasta",format = "fasta")
+fas2<-read.alignment("Output1A/HCV1A_comobined_CDS.fasta",format = "fasta")
+
+filen<-c(195,618)
+for (f in 1:2){
+        fas<-get(paste0("fas",f))
+        freq<-list()
+        Rho<-list()
+        Zscores<-list()
+        for (j in 1: length(fas[[3]])){
+                seq<-fas[[3]][[j]]
+                seq<-substring(seq, 1:nchar(seq),1:nchar(seq))
+                
+                #record dinucleotide freq
+                freq[[j]]<-as.data.frame(seqinr::count(seq,2))
+                names(freq)[j]<-fas[[2]][j]
+                Rho[[j]]<-as.data.frame(rho(seq,2))
+                names(Rho)[j]<-fas[[2]][j]
+                Zscores[[j]]<-as.data.frame(zscore(seq, modele="base"))
+                names(Zscores)[j]<-fas[[2]][j]
+        }
+
+        dint<-data.frame(diNT=freq[[1]][1])
+        Rho.values<-data.frame(diNT=freq[[1]][1])
+        Z.scores<-data.frame(diNT=freq[[1]][1])
+        for (j in 1:length(freq)) {
+                dt1<-freq[[j]]
+                dt2<-Rho[[j]]
+                dt3<-Zscores[[j]]
+                dint<-cbind(dint,dt1[,2])
+                Rho.values<-cbind(Rho.values, dt2[,2])
+                Z.scores<-cbind(Z.scores,dt3[,2])
+        }
+
+        tb1<-data.frame(diNT=dint[,1])
+        tb1$Freq<-rowMeans(dint[,2:ncol(dint)])
+        tb1$Rho<-rowMeans(Rho.values[,2:ncol(Rho.values)], na.rm=1)
+        tb1$Z<-rowMeans(Z.scores[,2:ncol(Z.scores)], na.rm=1)
+        
+        write.csv(tb1, paste0("Output1A/SummaryStats/Dinucleotides.sum.", filen[f],".csv"))
+}
+
+# 195 or 618
+tb1<-read.csv(paste0("Output1A/SummaryStats/Dinucleotides.sum.", filen[f],".csv"), stringsAsFactors = F, row.names = 1)
+
+tb1$diNT<-toupper(tb1$diNT)
+ggplot(tb1, aes(x=diNT, y=Rho), ylim)+geom_point(color=colors2[4], size=3)+
+        ylab("Rho statistic")+theme_bw()+ylim(0.7, 1.3)+
+        theme(axis.text.x = element_text(size = 12, angle = 90, hjust=1, color="gray20"))+
+        xlab("")+annotate("rect", xmin=0, xmax=9.5,ymax=Inf,ymin=-Inf, fill="gray90", alpha=0.1 , color=NA)+
+        geom_hline(yintercept = 1.23, color = "gray30", size=.5,linetype=1)+
+        geom_hline(yintercept = 0.79, color = "gray30", size=.5,linetype=1)+
+        geom_vline(xintercept = c(1:(nrow(tb1)-1))+0.5, color = "gray70", size=.2)+
+        theme(panel.grid.major.x = element_blank(),panel.grid.minor.y = element_blank(),
+              panel.grid.major.y = element_line(size = 0.2, colour = "grey30", linetype=2))+  
+        geom_text(label=paste0("\u2193 under-represented"), x= nrow(tb1)+1, y=0.75, size=2.5, color="gray20",hjust=0)+
+        geom_text(label=paste0("\u2191 over-represented"), x= nrow(tb1)+1, y=1.25, size=2.5, color="gray20",hjust=0)+
+        coord_cartesian(clip = 'off') +
+        theme(plot.margin = unit(c(.5, 4, .5, .5), "cm"))
+ggsave("Output1A/SummaryFig.Filtered/Dinuc.rho.plot.618.pdf", height = 4,width = 5.5)
+#
+
+####  Calculate among hosts mut freq  ###
 
 align2<-read.fasta("Data/HCV1A_CDS_Alignment.fasta",as.string=TRUE)
 align2<-read.fasta("Output1A/HCV1A_Consensus195_CDS.fasta",as.string=TRUE)

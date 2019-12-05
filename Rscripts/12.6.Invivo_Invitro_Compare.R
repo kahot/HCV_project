@@ -115,7 +115,6 @@ z=rep(c(0.7,0.3),times=4)
 x<-1:4
 ybreaks<- c(1:10 * 10^c(-4),1:10 * 10^c(-3),1:10 * 10^c(-2),1:10 * 10^c(-1)) 
 
-c(10^-4,10^-3,10^-1)
 ggplot(mfdat1,aes(x=NT, y=mf, fill=factor(type)))+geom_boxplot(outlier.alpha =.4, outlier.color = "gray60")+
         scale_y_continuous(trans = 'log10',breaks=c(0.0001,0.001,0.01), minor_breaks=ybreaks, labels=label_scientific2)+
         labs(x="Nucleotide",y="Mutation frequency")+
@@ -156,7 +155,7 @@ mfdata$Study<-factor(mfdata$Study, level=c( "In vitro","In vivo", "Among hosts")
 
 
 
-
+###
 
 
 nuc<-c("A","T","C","G")
@@ -199,5 +198,26 @@ ggplot()+scale_y_continuous(trans = 'log10', labels=label_scientific)+
                    color = "gray60", size=.4)+
 ggsave(filename="Output1A/SummaryFig.Filtered/Invivo.Invitro.Amonghosts.comparison.pdf",width=6, height=4, units='in',device='pdf')
 
+## in vivo & in vitro only 
+mfdata2<-mfdata[mfdata$Study=="In vitro"|mfdata$Study=="In vivo",]
+mfdata2$Study<-factor(mfdata2$Study, levels=c("In vivo", "In vitro"))
+tb2<-tb[1:8,]
+tb2$Study<-factor(tb2$Study, levels=c("In vivo", "In vitro"))
+
+ggplot()+scale_y_continuous(trans = 'log10', labels=label_scientific)+
+        geom_boxplot(data=mfdata2, aes(x=NT, y=mf, middle=mean(mf), color=Study, fill=Study),outlier.alpha = 0.2)+
+        labs(x="",y="Transition mutation frequency")+
+        scale_color_manual(values=colors2[c(1,3)]) +
+        scale_fill_manual(values=paste0(colors2[c(1,3)],"66" )) +
+        geom_point(data=tb2, aes(x=NT, y=Mean, group=Study), position=position_dodge(.75), size=0.6, color="black") +
+        geom_errorbar(data=tb2, aes(x=NT,ymin=Mean-SE, ymax=Mean+SE, group=Study), width=.2, size=.2, position=position_dodge(width=0.75))+
+        theme_bw()+
+        theme(axis.text = element_text(size =12, color="black"), axis.title.y = element_text(size=13))+
+        theme(legend.title = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())+
+        guides(shape = guide_legend(override.aes = list(size = 7)))+
+        geom_vline(xintercept = c(1:3)+0.5,  
+                   color = "gray60", size=.4)+
+        scale_x_discrete(breaks=c("A","T","C","G"),labels=c(expression(A%->%G),expression("T"%->%C),expression(C%->%"T"),expression(G%->%A)))
+ggsave(filename="Output1A/SummaryFig.Filtered/Invivo.Invitro.MFcomparison.pdf",width=5, height=4, units='in',device='pdf')
 
 

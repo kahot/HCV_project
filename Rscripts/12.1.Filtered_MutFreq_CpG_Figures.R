@@ -79,7 +79,6 @@ dat<-Summary[,c("merged.pos","gene",paste0("mean.",geno[g]))]
         colnames(dat)[3]<-"mean"
         dat$genotype<-geno[g]
         mf<-rbind(mf,dat)
-}
 
 
 mf1<-mf[!is.na(mf$mean),]
@@ -103,4 +102,34 @@ ggplot(sumG, aes(x=Gene, y=Mean, group=Genotype, color=Genotype))+
 #ggsave(filename="Output_all/Unfiltered/Ave.MVfreq_by.gene_by.genotype.pdf",width = 10, height = 8)
 ggsave(filename="Output_all/Ave.MVfreq_by.gene_by.genotype.pdf", width = 8.5, height = 5)
 
+
+####
+ 
+TS$SE<-apply(TS[,2:196],1,function(x) std.error(x,na.rm = T))
+TS$SD<-apply(TS[,2:196],1,function(x) sd(x,na.rm = T))
+
+plot(TS$SE, pch=".")
+plot(TS$SD, pch=".")
+
+ts2<-TS[,c("pos","mean","SE","SD")]
+ts2$CV<-ts2$SD/ts2$mean
+
+ggplot(ts2, aes(x=pos, y=CV))+
+        geom_point(size=.2)+ylab("CV")+
+        theme_bw()+
+        labs(x="")
+
+ggplot(ts2, aes(x=pos, y=CV))+
+        geom_point()+
+        geom_errorbar(aes(ymin=mean-SE, ymax=mean+SE), width=.2, size=.2)+
+        theme(axis.title.x=element_blank())+ylab("Mutation frequency")+
+        theme_bw()+
+        labs(x="")
+        
+        
+        +
+        guides(
+                shape = guide_legend(order = 2),
+                color=guide_legend(order=1)
+        )
 
