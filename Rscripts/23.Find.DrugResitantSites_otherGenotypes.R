@@ -5,8 +5,7 @@ source("Rscripts/baseRscript.R")
 #specific nucleotide positions with known drug resistant mutations 
 drsites<-read.csv("Data/HCV_drugresistance_Geno.csv",stringsAsFactors = F)
 
-geno1A<-read.csv("Output_all/Ts_summary_metadata.1A.csv",stringsAsFactors = F)
-geno1A<-geno1A[c(1:9410),-1]
+geno1A<-read.csv("Output_all/Filtered/Ts_summary_metadata.1A.csv",stringsAsFactors = F, row.names = 1)
 
 #attach the original position info for all genotypes
 for (i in 1:nrow(drsites)){
@@ -100,8 +99,8 @@ for (j in 1:length(geno)){
 
         DR.mutated.counts<-do.call(rbind,diff.count)
         
-        DR_MutFreq<-DR_mutfreq%>% reduce(full_join, by='ID')
-        DR_diff<-diff %>% reduce(full_join, by='ID')
+        DR_MutFreq<-DR_mutfreq%>% purrr::reduce(full_join, by='ID')
+        DR_diff<-diff %>% purrr::reduce(full_join, by='ID')
         write.csv(DR_MutFreq, paste0("Output_all/DR/RAV.MutationFreq_summary.", geno[j],".csv"))
         write.csv(DR_diff,    paste0("Output_all/DR/RAV.counts.MutFreq_summary.", geno[j],".csv"))
         
