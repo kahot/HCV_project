@@ -73,36 +73,6 @@ ggsave(filename="Output/SummaryFig.Filtered/CpGvsNonCpG_nonsyn_Ts.Q35.pdf", widt
 
 ###################  
 
-mf<-data.frame()
-
-dat<-Summary[,c("merged.pos","gene",paste0("mean.",geno[g]))]
-        colnames(dat)[3]<-"mean"
-        dat$genotype<-geno[g]
-        mf<-rbind(mf,dat)
-
-
-mf1<-mf[!is.na(mf$mean),]
-SumMFGenes<-aggregate(mf1$mean,by=list(mf1$genotype,mf1$gene),FUN=mean)
-SumMF.se<-aggregate(mf1$mean,by=list(mf1$genotype,mf1$gene),FUN=std.error)
-
-sumG<-cbind(SumMFGenes, SumMF.se$x)
-colnames(sumG)<-c("Genotype","Gene","Mean","SE")
-sumG$Gene<-factor(sumG$Gene, levels=c("5' UTR","Core","E1", "HVR1","E2","NS1", "NS2","NS3","NS4A","NS4B","NS5A","NS5B"))
-
-
-ggplot(sumG, aes(x=Gene, y=Mean, group=Genotype, color=Genotype))+
-        geom_point(position=position_dodge(width=0.3))+scale_fill_manual(values=colors2[c(1,3,5)])+
-        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.2, position=position_dodge(width=0.3))+
-        theme_bw()+theme(axis.text=element_text(size=11), axis.title=element_text(size=13))+ylab("Minor variant frequency")+
-        theme(panel.grid.major.x=element_blank(),axis.title.y = element_text(size=13))+
-        geom_vline(xintercept = c(1:11)+0.5,  
-                   color = "gray70", size=.5)+
-        theme(axis.title.x=element_blank())+
-        ylim(0.001,0.022)
-#ggsave(filename="Output_all/Unfiltered/Ave.MVfreq_by.gene_by.genotype.pdf",width = 10, height = 8)
-ggsave(filename="Output_all/Ave.MVfreq_by.gene_by.genotype.pdf", width = 8.5, height = 5)
-
-
 ####
  
 TS$SE<-apply(TS[,2:196],1,function(x) std.error(x,na.rm = T))

@@ -1,3 +1,5 @@
+## Old list of RAVs: Use New one. 
+
 
 #Ts summary with estiamted mutation frequency from the beta regression model
 data<-read.csv("Output1A/GLM/Ts.with.EstimatedMF.csv",stringsAsFactors = F)

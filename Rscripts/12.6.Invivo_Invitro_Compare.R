@@ -88,11 +88,12 @@ ggplot(mfdata,aes(x=NT,y=mf,color=Study, fill=Study))+
         scale_y_continuous(trans = 'log10', labels=label_scientific)+
         geom_boxplot(aes(middle=mean(mf), color=Study, fill=Study),outlier.alpha = 0.2)+
         labs(x="",y="Transition mutation frequency")+
-        scale_color_manual(values=colors2[c(1,5)]) +
-        scale_fill_manual(values=paste0(colors2[c(1,5)],"66" )) +
+        scale_color_manual(values=colors2[c(1,4)]) +
+        scale_fill_manual(values=paste0(colors2[c(1,4)],"66" )) +
         theme_bw()+
         theme(axis.text = element_text(size =12, color="black"), axis.title.y = element_text(size=13))+
-        theme(legend.title = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+        theme(legend.title = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())+
+        geom_vline(xintercept = c(1:3)+0.5, color="gray60")
 ggsave(filename="Output1A/SummaryFig.Filtered/Invivo.Invitro.comparison.pdf",width=5, height=4, units='in',device='pdf')
 
 ####
@@ -207,8 +208,8 @@ tb2$Study<-factor(tb2$Study, levels=c("In vivo", "In vitro"))
 ggplot()+scale_y_continuous(trans = 'log10', labels=label_scientific)+
         geom_boxplot(data=mfdata2, aes(x=NT, y=mf, middle=mean(mf), color=Study, fill=Study),outlier.alpha = 0.2)+
         labs(x="",y="Transition mutation frequency")+
-        scale_color_manual(values=colors2[c(1,3)]) +
-        scale_fill_manual(values=paste0(colors2[c(1,3)],"66" )) +
+        scale_color_manual(values=colors2[c(1,4)]) +
+        scale_fill_manual(values=paste0(colors2[c(1,4)],"66" )) +
         geom_point(data=tb2, aes(x=NT, y=Mean, group=Study), position=position_dodge(.75), size=0.6, color="black") +
         geom_errorbar(data=tb2, aes(x=NT,ymin=Mean-SE, ymax=Mean+SE, group=Study), width=.2, size=.2, position=position_dodge(width=0.75))+
         theme_bw()+
@@ -219,5 +220,103 @@ ggplot()+scale_y_continuous(trans = 'log10', labels=label_scientific)+
                    color = "gray60", size=.4)+
         scale_x_discrete(breaks=c("A","T","C","G"),labels=c(expression(A%->%G),expression("T"%->%C),expression(C%->%"T"),expression(G%->%A)))
 ggsave(filename="Output1A/SummaryFig.Filtered/Invivo.Invitro.MFcomparison.pdf",width=5, height=4, units='in',device='pdf')
+
+
+
+
+################
+####
+#in vivo vs. in vitro by gene
+dt2<-read.csv("Data/Geller.mut.freq.csv", stringsAsFactors = F, row.names = 1)
+colnames(dt2)[1]<-"pos"
+
+genes<-read.csv("Data/HCV_annotations2.csv",stringsAsFactors = F)
+genes$Gene[6]<-"NS1"
+gene.vector<-c()
+for (i in 1:(nrow(genes)-1)){
+        gene.vector<-c(gene.vector, rep(genes$Gene[i],times=genes$start[i+1]-genes$start[i]))
+}
+genetable<-data.frame("pos"=c(1:length(gene.vector)))
+genetable$gene<-gene.vector
+end<-TS$pos[nrow(TS)]
+genetable<-genetable[genetable$pos>=342&genetable$pos<=end,]
+
+TS<-merge(TS, genetable, by="pos")
+TS2<-merge(dt2, genetable, by="pos")
+
+TS<-TS[TS$pos>=TS2$pos[1],]
+TS2<-TS2[TS2$pos<=TS$pos[nrow(TS)],]
+
+summary1.mean<-aggregate(TS$mean,by=list(TS$gene),FUN=mean)
+summary1.se<-aggregate(TS$mean,by=list(TS$gene),FUN=std.error)
+summary2.mean<-aggregate(TS2$freq.Ts,by=list(TS2$gene),FUN=mean, na.rm=T)
+summary2.se<-aggregate(TS2$freq.Ts,by=list(TS2$gene),FUN=std.error)
+
+summary<-merge(summary1.mean,summary1.se, by="Group.1")
+summary$Study<-"In vivo"
+
+summary2<-merge(summary2.mean,summary2.se, by="Group.1")
+summary2$Study<-"In vitro"
+
+summary<-rbind(summary,summary2)
+colnames(summary)<-c("Gene", "Mean", "SE", "Study")
+summary$Gene<-factor(summary$Gene, levels=c(genes$Gene[2:12]))
+summary$Study<-factor(summary$Study, levels=c("In vivo", "In vitro"))
+
+ggplot(summary,aes(x=Gene,y=Mean,color=Study, fill=Study))+
+        scale_y_continuous(trans = 'log10', labels=label_scientific)+
+        geom_point(data=summary, position=position_dodge(width=0.3), size=2,shape = 21)+scale_color_manual(values=colors2[c(1,4)])+
+        scale_fill_manual(values=paste0(colors2[c(1,5)],"66"))+
+        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.2, position=position_dodge(width=0.3))+
+        theme_bw()+theme(axis.text=element_text(size=11), axis.title=element_text(size=13))+ylab("Average mutation frequency")+
+        theme(panel.grid.major.x=element_blank(),axis.title.y = element_text(size=13))+
+        geom_vline(xintercept = c(1:10)+0.5, color = "gray70", size=.5)+
+        theme(axis.title.x=element_blank())
+ggsave(filename="Output1A/SummaryFig.Filtered/Invivo.Invitro.byGene.pdf",width=7, height=4)
+
+
+## Boxplot
+transmf1<-list()
+k<-1
+for (i in 1:11) {
+        datavector<-TS2$freq.Ts[TS2$gene==genes$Gene[(i+1)]]
+        dat<-data.frame(Gene=rep(genes$Gene[(i+1)],times=length(datavector)), MF=datavector)
+        transmf1[[k]]<-dat
+        names(transmf1)[k]<-genes$Gene[(i+1)]
+        k=k+1
+}
+mfdata1<-do.call(rbind, transmf1)
+mfdata1$Study<-"In vitro"
+
+
+k=1
+transmf2<-list()
+for (i in  1:11) {
+        datavector<-TS$mean[TS$gene==genes$Gene[(i+1)]]
+        dat<-data.frame(Gene=rep(genes$Gene[(i+1)],times=length(datavector)), MF=datavector)
+        transmf2[[k]]<-dat
+        names(transmf2)[k]<-genes$Gene[(i+1)]
+        k=k+1
+}
+mfdata2<-do.call(rbind, transmf2)
+mfdata2$Study<-"In vivo"
+
+mfdata<-rbind(mfdata1, mfdata2)
+mfdata$Study<-factor(mfdata$Study, level=c("In vivo", "In vitro"))
+mfdata$Gene<-factor(summary$Gene, levels=c(genes$Gene[2:12]))
+
+z=c(0.7,0.3,0.7,0.3)
+ggplot(mfdata,aes(x=Gene,y=MF,color=Study, fill=Study))+
+        scale_y_continuous(trans = 'log10', labels=label_scientific)+
+        geom_boxplot(aes(middle=mean(MF), color=Study, fill=Study),outlier.alpha = 0.2)+
+        labs(x="",y="Transition mutation frequency")+
+        scale_color_manual(values=colors2[c(1,5)]) +
+        scale_fill_manual(values=paste0(colors2[c(1,5)],"66" )) +
+        theme_bw()+
+        theme(axis.text = element_text(size =12, color="black"), axis.title.y = element_text(size=13))+
+        theme(legend.title = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+
+
+ggsave(filename="Output1A/SummaryFig.Filtered/Invivo.Invitro.comparison.pdf",width=5, height=4, units='in',device='pdf')
 
 
