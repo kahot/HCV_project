@@ -231,3 +231,15 @@ mean(Reads$median) #5282.449
 mean(Reads$max) #22005.66
 
 sum(Reads$ave>=5000)
+
+### Structural vs. non-structural genes mut. freq
+TS<-read.csv("Output1A/MutFreq.filtered/Filtered.Ts.Q35.csv",stringsAsFactors = F,row.names=1)
+
+st<-TS[TS$pos>341& TS$pos<=2579,]
+nonst<-TS[TS$pos<=2579,]
+
+mean(st$mean, na.rm=T) #0.004964672
+mean(nonst$mean, na.rm = T)  #0.004872566
+
+r1<-wilcox.test(st$mean,nonst$mean, alternative = "greater", paired = FALSE) 
+r1[[3]]  #P=0.1054109 Not Significant

@@ -320,3 +320,9 @@ ggplot(mfdata,aes(x=Gene,y=MF,color=Study, fill=Study))+
 ggsave(filename="Output1A/SummaryFig.Filtered/Invivo.Invitro.comparison.pdf",width=5, height=4, units='in',device='pdf')
 
 
+#### Average number of samples per site in the filtered dataset used to calculate the mean mut freqs
+TS<-TS[TS$pos>=342,]
+TS$Total<-apply(TS[,2:196], 1, function(x) sum(!is.na(x)) )
+mean(TS$Total, na.rm=T) #141.6
+
+6200*141.6

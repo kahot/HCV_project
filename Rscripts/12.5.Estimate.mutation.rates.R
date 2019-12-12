@@ -74,13 +74,18 @@ Mutrates<-data.frame(mutations=c("CT","GA","CA","TA","AT","CG","GT","TG"),
 geller$mutations<-gsub("U","T",geller$mutations)
 
 Mutrates<-merge(Mutrates, geller[,1:2], by="mutations", all.y = T )
-colnames(Mutrates)[3]<-"Geller"
+colnames(Mutrates)[2:3]<-c("In vivo estimation", "In vitro")
+
 MutratesM<-melt(Mutrates)
 ggplot(MutratesM, aes(x= mutations, y=value, color=variable ))+
-        geom_point()+scale_y_continuous(trans = "log")+
+        geom_point(size=2)+scale_y_continuous(trans = "log")+
+        scale_color_manual(values=colors2[c(1,4)])+
         theme_bw()+
         ylab("Mutation rate")+xlab('Mutation')+
         theme(legend.title = element_blank())
-ggsave("Estimated.mutation.rates.pdf", width = 5, height = 4)
+ggsave("Output1A/SummaryFig.Filtered/Estimated.mutation.rates.pdf", width = 6, height = 4)
 
 
+cor.test(Mutrates$`In vivo estimation`, Mutrates$`In vitro`, method="spearman")
+#S = 18, p-value = 0.02793
+#rho 0.7857143
