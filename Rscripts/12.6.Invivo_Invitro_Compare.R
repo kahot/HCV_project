@@ -325,4 +325,4 @@ TS<-TS[TS$pos>=342,]
 TS$Total<-apply(TS[,2:196], 1, function(x) sum(!is.na(x)) )
 mean(TS$Total, na.rm=T) #141.6
 
-6200*141.6
+6200*mean(TS$Total, na.rm=T) #877903

@@ -243,7 +243,7 @@ dr_sc$ID<-factor(dr_sc$ID, levels = c(DR$ID))
 dr_sc<-dr_sc[order(dr_sc$ID),]
 write.csv(dr_sc, "Output1A/DrugRes/RAV.SC_summary.1A.csv")
 
-
+dr_sc<-read.csv("Output1A/DrugRes/RAV.SC_summary.1A.csv")
 
 #min(dr_sc$EstSC)
 #plot(dr_sc$EstSC~dr_sc$ID)
@@ -325,3 +325,10 @@ rect(ns3n+ns5an+.5,-5,nrow(dr)+.5,-5.19,density = NULL, angle = 45,col="white",b
 text(nrow(dr)-(nrow(dr)-ns3n-ns5an)/2+.5,-5.08,paste0(genesDF$name[3]),col="black", cex=.8)
 
 dev.off()
+
+####
+#SC for RAV sites vs. none.
+drsites<-dr_sc[,c("ID","pos.1A","EstSC","Type","Gene","MR")]
+
+
+mean(dr_sc$EstSC[dr_sc$Type=='syn'], na.rm=T)
